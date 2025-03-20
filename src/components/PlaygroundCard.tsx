@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { Star, MapPin, Users } from 'lucide-react';
+import { Star, MapPin, Users, Calendar } from 'lucide-react';
 import { RatingComponent } from './Rating';
+import { PlaydateComponent } from './Playdate';
 import { supabase } from '../lib/supabase';
+import { format } from 'date-fns';
 
 interface PlaygroundCardProps {
   id: string;
@@ -11,6 +13,15 @@ interface PlaygroundCardProps {
   minAge: number;
   maxAge: number;
   imageUrl?: string;
+}
+
+interface Playdate {
+  id: string;
+  date: string;
+  description: string;
+  organizer: {
+    email: string;
+  };
 }
 
 export function PlaygroundCard({
@@ -25,10 +36,13 @@ export function PlaygroundCard({
   const [averageRating, setAverageRating] = useState<number | null>(null);
   const [ratingCount, setRatingCount] = useState(0);
   const [images, setImages] = useState<string[]>([]);
+  const [showPlaydateModal, setShowPlaydateModal] = useState(false);
+  const [upcomingPlaydates, setUpcomingPlaydates] = useState<Playdate[]>([]);
 
   useEffect(() => {
     fetchRatings();
     fetchImages();
+    fetchUpcomingPlaydates();
   }, [id]);
 
   async function fetchRatings() {
@@ -67,6 +81,36 @@ export function PlaygroundCard({
     }
   }
 
+  async function fetchUpcomingPlaydates() {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('playdates')
+        .select(`
+          id,
+          date,
+          description,
+          organizer:organizer_id(email)
+        `)
+        .eq('playground_id', id)
+        .gte('date', new Date().toISOString())
+        .order('date', { ascending: true })
+        .limit(3);
+
+      if (error) throw error;
+      setUpcomingPlaydates(
+        (data || []).map((playdate) => ({
+          ...playdate,
+          organizer: playdate.organizer[0], // Extract the first organizer
+        }))
+      );
+    } catch (error) {
+      console.error('Error fetching playdates:', error);
+    }
+  }
+
   const handleRatingUpdate = () => {
     fetchRatings();
   };
@@ -98,8 +142,47 @@ export function PlaygroundCard({
           )}
         </div>
         <p className="text-gray-700 text-sm mb-4">{description}</p>
+
+        {upcomingPlaydates.length > 0 && (
+          <div className="mb-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Upcoming Playdates:</h4>
+            <div className="space-y-2">
+              {upcomingPlaydates.map((playdate) => (
+                <div key={playdate.id} className="bg-blue-50 p-3 rounded-md">
+                  <div className="flex items-center gap-2 text-blue-700">
+                    <Calendar size={16} />
+                    <span className="text-sm font-medium">
+                      {format(new Date(playdate.date), 'MMM d, yyyy h:mm a')}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-600 mt-1">{playdate.description}</p>
+                  <p className="text-xs text-gray-500 mt-1">Organized by: {playdate.organizer.email}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="flex gap-2 mb-4">
+          <button
+            onClick={() => setShowPlaydateModal(true)}
+            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+          >
+            <Calendar size={16} />
+            Schedule Playdate
+          </button>
+        </div>
+
         <RatingComponent playgroundId={id} onRatingUpdate={handleRatingUpdate} />
       </div>
+
+      {showPlaydateModal && (
+        <PlaydateComponent
+          playgroundId={id}
+          playgroundName={name}
+          onClose={() => setShowPlaydateModal(false)}
+        />
+      )}
     </div>
   );
 }
