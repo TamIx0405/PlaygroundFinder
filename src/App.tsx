@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { LogOut } from 'react-feather';
 import { PlaygroundCard } from './components/PlaygroundCard';
 import { AddPlayground } from './components/AddPlayground';
 import { Auth } from './components/Auth';
 import { supabase } from './lib/supabase';
+import { PlusCircle, LogOut } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 
 interface Playground {
@@ -84,7 +84,7 @@ function App() {
                 onClick={() => setShowAddForm(!showAddForm)}
                 className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
               >
-                
+                <PlusCircle size={20} />
                 {showAddForm ? 'Close' : 'Add Playground'}
               </button>
               <button

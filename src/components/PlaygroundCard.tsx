@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { Star, MapPin, Users, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Star, MapPin, Users, Calendar, MessageSquare } from 'lucide-react';
 import { RatingComponent } from './Rating';
 import { PlaydateComponent } from './Playdate';
 import { supabase } from '../lib/supabase';
@@ -19,9 +19,14 @@ interface Playdate {
   id: string;
   date: string;
   description: string;
-  organizer: {
-    email: string;
-  };
+  organizer_id: string;
+  organizer_email?: string;
+}
+
+interface Rating {
+  rating: number;
+  comment: string;
+  user_email: string;
 }
 
 export function PlaygroundCard({
@@ -38,6 +43,7 @@ export function PlaygroundCard({
   const [images, setImages] = useState<string[]>([]);
   const [showPlaydateModal, setShowPlaydateModal] = useState(false);
   const [upcomingPlaydates, setUpcomingPlaydates] = useState<Playdate[]>([]);
+  const [ratings, setRatings] = useState<Rating[]>([]);
 
   useEffect(() => {
     fetchRatings();
@@ -49,7 +55,12 @@ export function PlaygroundCard({
     try {
       const { data, error } = await supabase
         .from('playground_ratings')
-        .select('rating')
+        .select(`
+          rating,
+          comment,
+          user_id,
+          users:auth.users!playground_ratings_user_id_fkey(email)
+        `)
         .eq('playground_id', id);
 
       if (error) throw error;
@@ -58,6 +69,13 @@ export function PlaygroundCard({
         const total = data.reduce((sum, curr) => sum + curr.rating, 0);
         setAverageRating(total / data.length);
         setRatingCount(data.length);
+        
+        // Format ratings with comments
+        setRatings(data.map(r => ({
+          rating: r.rating,
+          comment: r.comment,
+          user_email: r.users.email
+        })));
       }
     } catch (error) {
       console.error('Error fetching ratings:', error);
@@ -86,26 +104,34 @@ export function PlaygroundCard({
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      const { data, error } = await supabase
+      const { data: playdates, error: playdatesError } = await supabase
         .from('playdates')
-        .select(`
-          id,
-          date,
-          description,
-          organizer:organizer_id(email)
-        `)
+        .select('id, date, description, organizer_id')
         .eq('playground_id', id)
         .gte('date', new Date().toISOString())
         .order('date', { ascending: true })
         .limit(3);
 
-      if (error) throw error;
-      setUpcomingPlaydates(
-        (data || []).map((playdate) => ({
-          ...playdate,
-          organizer: playdate.organizer[0], // Extract the first organizer
-        }))
-      );
+      if (playdatesError) throw playdatesError;
+
+      if (!playdates?.length) {
+        setUpcomingPlaydates([]);
+        return;
+      }
+
+      const { data: users, error: usersError } = await supabase
+        .from('auth.users')
+        .select('id, email')
+        .in('id', playdates.map(p => p.organizer_id));
+
+      if (usersError) throw usersError;
+
+      const playdatesWithEmails = playdates.map(playdate => ({
+        ...playdate,
+        organizer_email: users?.find(u => u.id === playdate.organizer_id)?.email
+      }));
+
+      setUpcomingPlaydates(playdatesWithEmails);
     } catch (error) {
       console.error('Error fetching playdates:', error);
     }
@@ -156,7 +182,11 @@ export function PlaygroundCard({
                     </span>
                   </div>
                   <p className="text-sm text-gray-600 mt-1">{playdate.description}</p>
-                  <p className="text-xs text-gray-500 mt-1">Organized by: {playdate.organizer.email}</p>
+                  {playdate.organizer_email && (
+                    <p className="text-xs text-gray-500 mt-1">
+                      Organized by: {playdate.organizer_email}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>
@@ -174,6 +204,37 @@ export function PlaygroundCard({
         </div>
 
         <RatingComponent playgroundId={id} onRatingUpdate={handleRatingUpdate} />
+
+        {/* Comments Section */}
+        {ratings.length > 0 && (
+          <div className="mt-6 border-t pt-4">
+            <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
+              <MessageSquare size={16} />
+              Comments
+            </h4>
+            <div className="space-y-4">
+              {ratings.filter(r => r.comment).map((rating, index) => (
+                <div key={index} className="bg-gray-50 p-3 rounded-md">
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex items-center">
+                      {[...Array(rating.rating)].map((_, i) => (
+                        <Star
+                          key={i}
+                          size={14}
+                          className="text-yellow-400 fill-yellow-400"
+                        />
+                      ))}
+                    </div>
+                    <span className="text-sm text-gray-500">
+                      by {rating.user_email}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700">{rating.comment}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {showPlaydateModal && (
