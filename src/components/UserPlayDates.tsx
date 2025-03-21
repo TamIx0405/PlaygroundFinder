@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
 import { Calendar, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
+import { useState, useEffect } from 'react';
 
-interface UserPlaydate {
+interface Playdates {
   id: string;
   date: string;
   description: string;
+  organizer: {
+    name: string;
+  };
   playground: {
     name: string;
     location: string;
@@ -14,41 +17,39 @@ interface UserPlaydate {
 }
 
 export function UserPlaydates() {
-  const [playdates, setPlaydates] = useState<UserPlaydate[]>([]);
+  const [playdates, setPlaydates] = useState<Playdates[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchUserPlaydates();
+    fetchAllPlaydates();
   }, []);
 
-  async function fetchUserPlaydates() {
+  async function fetchAllPlaydates() {
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
       const { data, error } = await supabase
         .from('playdates')
         .select(`
           id,
           date,
           description,
-          playground (
+          organizer:users (name),
+          playground:playgrounds (
             name,
             location
           )
         `)
-        .eq('organizer_id', user.id)
         .order('date', { ascending: true });
 
       if (error) throw error;
       setPlaydates(
-        (data || []).map((playdate: any) => ({
-          ...playdate,
-          playground: playdate.playground as { name: string; location: string },
+        (data || []).map((item) => ({
+          ...item,
+          organizer: item.organizer[0],
+          playground: item.playground[0],
         }))
       );
     } catch (error) {
-      console.error('Error fetching user playdates:', error);
+      console.error('Error fetching playdates:', error);
     } finally {
       setLoading(false);
     }
@@ -58,7 +59,7 @@ export function UserPlaydates() {
     return (
       <div className="text-center py-8">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-        <p className="mt-2 text-gray-600">Loading your playdates...</p>
+        <p className="mt-2 text-gray-600">Loading playdates...</p>
       </div>
     );
   }
@@ -66,7 +67,7 @@ export function UserPlaydates() {
   if (playdates.length === 0) {
     return (
       <div className="text-center py-8">
-        <p className="text-gray-600">You haven't scheduled any playdates yet.</p>
+        <p className="text-gray-600">No playdates scheduled yet.</p>
       </div>
     );
   }
@@ -87,8 +88,10 @@ export function UserPlaydates() {
             <span>{playdate.playground.location}</span>
           </div>
           <p className="text-gray-700">{playdate.description}</p>
+          <p className="text-sm text-gray-500">Organized by: {playdate.organizer.name}</p>
         </div>
       ))}
     </div>
   );
 }
+

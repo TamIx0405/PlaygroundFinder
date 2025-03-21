@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Star, MapPin, Users, Calendar, MessageSquare } from 'lucide-react';
 import { RatingComponent } from './Rating';
 import { PlaydateComponent } from './Playdate';
@@ -59,7 +59,7 @@ export function PlaygroundCard({
           rating,
           comment,
           user_id,
-          users:auth.users!playground_ratings_user_id_fkey(email)
+          users(email)
         `)
         .eq('playground_id', id);
 
@@ -74,7 +74,7 @@ export function PlaygroundCard({
         setRatings(data.map(r => ({
           rating: r.rating,
           comment: r.comment,
-          user_email: r.users.email
+          user_email: r.users?.[0]?.email
         })));
       }
     } catch (error) {
