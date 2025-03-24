@@ -20,6 +20,12 @@ jobs:
         git config --local --name-only --get-regexp http.https://github.com/.extraheader
         git config --local --unset-all http.https://github.com/.extraheader
 
+    - name: Install dependencies
+      run: npm install
+
+    - name: Install Vite
+      run: npm install vite
+
     - name: Build and deploy
       run: npm run build && npm run deploy
 
