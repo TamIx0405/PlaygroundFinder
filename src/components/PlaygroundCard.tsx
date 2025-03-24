@@ -21,6 +21,7 @@ interface Playdate {
   description: string;
   organizer_id: string;
   organizer_email?: string;
+  organizer?: { email?: string } | { email?: string }[]; // Explicitly define the type of organizer
 }
 
 interface Rating {
@@ -59,7 +60,9 @@ export function PlaygroundCard({
           rating,
           comment,
           user_id,
-          users(email)
+          user:profiles!playground_ratings_user_id_fkey (
+            email
+          )
         `)
         .eq('playground_id', id);
 
@@ -74,7 +77,9 @@ export function PlaygroundCard({
         setRatings(data.map(r => ({
           rating: r.rating,
           comment: r.comment,
-          user_email: r.users?.[0]?.email
+          user_email: Array.isArray(r.user) 
+            ? 'Anonymous' 
+            : (r.user as { email?: string })?.email || 'Anonymous'
         })));
       }
     } catch (error) {
@@ -106,7 +111,15 @@ export function PlaygroundCard({
 
       const { data: playdates, error: playdatesError } = await supabase
         .from('playdates')
-        .select('id, date, description, organizer_id')
+        .select(`
+          id,
+          date,
+          description,
+          organizer_id,
+          organizer:profiles!playdates_organizer_id_fkey (
+            email
+          )
+        `)
         .eq('playground_id', id)
         .gte('date', new Date().toISOString())
         .order('date', { ascending: true })
@@ -114,24 +127,19 @@ export function PlaygroundCard({
 
       if (playdatesError) throw playdatesError;
 
-      if (!playdates?.length) {
-        setUpcomingPlaydates([]);
-        return;
+      if (playdates) {
+        const playdatesWithEmails = playdates.map(playdate => ({
+          id: playdate.id,
+          date: playdate.date,
+          description: playdate.description,
+          organizer_id: playdate.organizer_id,
+          organizer_email: Array.isArray(playdate.organizer)
+            ? playdate.organizer[0]?.email || 'Anonymous'
+            : (playdate.organizer as { email?: string })?.email || 'Anonymous'
+        }));
+
+        setUpcomingPlaydates(playdatesWithEmails);
       }
-
-      const { data: users, error: usersError } = await supabase
-        .from('auth.users')
-        .select('id, email')
-        .in('id', playdates.map(p => p.organizer_id));
-
-      if (usersError) throw usersError;
-
-      const playdatesWithEmails = playdates.map(playdate => ({
-        ...playdate,
-        organizer_email: users?.find(u => u.id === playdate.organizer_id)?.email
-      }));
-
-      setUpcomingPlaydates(playdatesWithEmails);
     } catch (error) {
       console.error('Error fetching playdates:', error);
     }
