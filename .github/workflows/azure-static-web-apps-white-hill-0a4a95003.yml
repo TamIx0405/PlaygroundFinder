@@ -8,6 +8,7 @@ on:
 jobs:
   build_and_deploy_job:
     runs-on: ubuntu-latest
+    timeout-minutes: 30  # Set a timeout for the entire build and deploy job
     steps:
     - name: Checkout repository
       uses: actions/checkout@v2
@@ -21,13 +22,28 @@ jobs:
         git config --local --unset-all http.https://github.com/.extraheader
 
     - name: Install dependencies
-      run: npm install
+      run: |
+        echo "Installing dependencies..."
+        npm install
+        echo "Dependencies installed."
 
     - name: Install Vite
-      run: npm install vite
+      run: |
+        echo "Installing Vite..."
+        npm install vite
+        echo "Vite installed."
 
-    - name: Build and deploy
-      run: npm run build && npm run deploy
+    - name: Build the project
+      run: |
+        echo "Building the project..."
+        npm run build
+        echo "Build completed."
+
+    - name: Deploy the project
+      run: |
+        echo "Deploying the project..."
+        npm run deploy
+        echo "Deploy completed."
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
