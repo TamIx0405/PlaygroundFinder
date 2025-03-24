@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Star } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import toast from 'react-hot-toast';
-import { Star } from 'lucide-react'; // Ensure this is the correct import
 
 interface RatingProps {
   playgroundId: string;
@@ -27,34 +27,42 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
 
   async function fetchUserRating() {
     try {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data?.user) return;
-      const user = data.user;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
 
-      const { data: ratingData, error: ratingError } = await supabase
+      const { data, error } = await supabase
         .from('playground_ratings')
         .select('rating, comment')
         .eq('playground_id', playgroundId)
-        .eq('user_id', user.id)
-        .single();
+        .eq('user_id', user.id);
 
-      if (ratingError) throw ratingError;
-      if (ratingData) {
-        setUserRating(ratingData);
-        setRating(ratingData.rating);
-        setComment(ratingData.comment || '');
+      if (error) throw error;
+
+      // Handle case when user has a rating
+      if (data && data.length > 0) {
+        const latestRating = data[0];
+        setUserRating(latestRating);
+        setRating(latestRating.rating);
+        setComment(latestRating.comment || '');
+      } else {
+        // Reset state when no rating exists
+        setUserRating(null);
+        setRating(0);
+        setComment('');
       }
-    } catch (err) {
-      console.error('Error fetching user rating:', err);
+    } catch (error) {
+      console.error('Error fetching user rating:', error);
     }
   }
 
   const handleRatingClick = async (selectedRating: number) => {
-    const { data, error } = await supabase.auth.getUser();
-    if (error || !data?.user) {
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
       toast.error('Please log in to rate playgrounds');
       return;
     }
+
     setRating(selectedRating);
     setShowCommentForm(true);
   };
@@ -64,16 +72,19 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
     setIsSubmitting(true);
 
     try {
-      const { data, error } = await supabase.auth.getUser();
-      if (error || !data?.user) throw new Error('You must be logged in to rate playgrounds');
-      const user = data.user;
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('You must be logged in to rate playgrounds');
+      }
 
+      // Update rating
       const { error: ratingError } = await supabase.from('playground_ratings').upsert({
         playground_id: playgroundId,
         user_id: user.id,
         rating,
         comment
       });
+
       if (ratingError) throw ratingError;
 
       toast.success('Rating updated successfully!');
@@ -90,7 +101,7 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
   return (
     <div className="mt-4">
       <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map(star => (
+        {[1, 2, 3, 4, 5].map((star) => (
           <button
             key={star}
             onMouseEnter={() => setHoveredRating(star)}
@@ -101,7 +112,9 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
             <Star
               size={20}
               className={`${
-                star <= (hoveredRating || rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+                star <= (hoveredRating || rating)
+                  ? 'fill-yellow-400 text-yellow-400'
+                  : 'text-gray-300'
               } transition-colors`}
             />
           </button>
@@ -116,7 +129,9 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
       {showCommentForm && (
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <label htmlFor="comment" className="block text-sm font-medium text-gray-700">Comment (optional)</label>
+            <label htmlFor="comment" className="block text-sm font-medium text-gray-700">
+              Comment (optional)
+            </label>
             <textarea
               id="comment"
               value={comment}
@@ -126,10 +141,18 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
             />
           </div>
           <div className="flex gap-2">
-            <button type="submit" disabled={isSubmitting} className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50">
+            <button
+              type="submit"
+              disabled={isSubmitting}
+              className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+            >
               {isSubmitting ? 'Submitting...' : 'Submit Rating'}
             </button>
-            <button type="button" onClick={() => setShowCommentForm(false)} className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+            <button
+              type="button"
+              onClick={() => setShowCommentForm(false)}
+              className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md text-sm hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+            >
               Cancel
             </button>
           </div>
