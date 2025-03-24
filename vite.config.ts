@@ -3,12 +3,9 @@ import react from '@vitejs/plugin-react';
 
 export default defineConfig({
   plugins: [react()],
-  optimizeDeps: {
-    exclude: ['lucide-react'],
-  },
   build: {
     rollupOptions: {
-      input: 'index.html', // Ensure Vite knows where to start
+      input: 'index.html', // Make sure Vite starts here
     },
   },
 });
