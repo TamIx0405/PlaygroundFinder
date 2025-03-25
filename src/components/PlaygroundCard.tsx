@@ -21,7 +21,7 @@ interface Playdate {
   description: string;
   organizer_id: string;
   organizer_email?: string;
-  organizer?: { email?: string } | { email?: string }[]; // Explicitly define the type of organizer
+  profiles?: { email: string } | { email: string }[]; // Explicitly define the type
 }
 
 interface Rating {
@@ -60,7 +60,7 @@ export function PlaygroundCard({
           rating,
           comment,
           user_id,
-          user:profiles!playground_ratings_user_id_fkey (
+          profiles!playground_ratings_user_id_fkey (
             email
           )
         `)
@@ -73,13 +73,10 @@ export function PlaygroundCard({
         setAverageRating(total / data.length);
         setRatingCount(data.length);
         
-        // Format ratings with comments
         setRatings(data.map(r => ({
           rating: r.rating,
           comment: r.comment,
-          user_email: Array.isArray(r.user) 
-            ? 'Anonymous' 
-            : (r.user as { email?: string })?.email || 'Anonymous'
+          user_email: Array.isArray(r.profiles) ? 'Anonymous' : (r.profiles as { email: string } | null)?.email || 'Anonymous'
         })));
       }
     } catch (error) {
@@ -116,7 +113,7 @@ export function PlaygroundCard({
           date,
           description,
           organizer_id,
-          organizer:profiles!playdates_organizer_id_fkey (
+          profiles!playdates_organizer_id_fkey (
             email
           )
         `)
@@ -129,13 +126,10 @@ export function PlaygroundCard({
 
       if (playdates) {
         const playdatesWithEmails = playdates.map(playdate => ({
-          id: playdate.id,
-          date: playdate.date,
-          description: playdate.description,
-          organizer_id: playdate.organizer_id,
-          organizer_email: Array.isArray(playdate.organizer)
-            ? playdate.organizer[0]?.email || 'Anonymous'
-            : (playdate.organizer as { email?: string })?.email || 'Anonymous'
+          ...playdate,
+          organizer_email: Array.isArray(playdate.profiles) 
+            ? (playdate.profiles[0] as { email: string } | undefined)?.email 
+            : (playdate.profiles as { email: string } | undefined)?.email
         }));
 
         setUpcomingPlaydates(playdatesWithEmails);
@@ -150,48 +144,51 @@ export function PlaygroundCard({
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md overflow-hidden">
+    <div className="card-playful overflow-hidden transform hover:scale-102 transition-all duration-300">
       {(images.length > 0 || imageUrl) && (
-        <img
-          src={images[0] || imageUrl}
-          alt={name}
-          className="w-full h-48 object-cover"
-        />
-      )}
-      <div className="p-4">
-        <h3 className="text-xl font-semibold mb-2">{name}</h3>
-        <div className="flex items-center gap-2 text-gray-600 mb-2">
-          <MapPin size={16} />
-          <span>{location}</span>
+        <div className="relative h-48 overflow-hidden rounded-t-3xl">
+          <img
+            src={images[0] || imageUrl}
+            alt={name}
+            className="w-full h-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
         </div>
-        <div className="flex items-center gap-2 text-gray-600 mb-3">
-          <Users size={16} />
-          <span>Ages {minAge}-{maxAge}</span>
+      )}
+      <div className="p-6">
+        <h3 className="text-2xl font-display font-bold text-gray-800 mb-2">{name}</h3>
+        <div className="flex items-center gap-2 text-gray-600 mb-2">
+          <MapPin size={16} className="text-primary" />
+          <span className="font-body">{location}</span>
+        </div>
+        <div className="flex items-center gap-2 text-gray-600 mb-4">
+          <Users size={16} className="text-secondary" />
+          <span className="font-body">Ages {minAge}-{maxAge}</span>
           {averageRating !== null && (
             <div className="flex items-center ml-auto">
-              <Star className="text-yellow-400 fill-yellow-400" size={16} />
-              <span className="ml-1">{averageRating.toFixed(1)}</span>
+              <Star className="text-accent-yellow fill-accent-yellow" size={16} />
+              <span className="ml-1 font-semibold">{averageRating.toFixed(1)}</span>
               <span className="text-sm text-gray-500 ml-1">({ratingCount})</span>
             </div>
           )}
         </div>
-        <p className="text-gray-700 text-sm mb-4">{description}</p>
+        <p className="text-gray-700 font-body mb-6">{description}</p>
 
         {upcomingPlaydates.length > 0 && (
-          <div className="mb-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-2">Upcoming Playdates:</h4>
-            <div className="space-y-2">
+          <div className="mb-6">
+            <h4 className="text-lg font-display font-semibold text-gray-800 mb-3">Upcoming Playdates</h4>
+            <div className="space-y-3">
               {upcomingPlaydates.map((playdate) => (
-                <div key={playdate.id} className="bg-blue-50 p-3 rounded-md">
-                  <div className="flex items-center gap-2 text-blue-700">
+                <div key={playdate.id} className="bg-background-light/50 p-4 rounded-2xl">
+                  <div className="flex items-center gap-2 text-primary-dark">
                     <Calendar size={16} />
-                    <span className="text-sm font-medium">
+                    <span className="font-body font-medium">
                       {format(new Date(playdate.date), 'MMM d, yyyy h:mm a')}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-600 mt-1">{playdate.description}</p>
+                  <p className="text-gray-700 font-body mt-2">{playdate.description}</p>
                   {playdate.organizer_email && (
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-sm text-gray-500 font-body mt-1">
                       Organized by: {playdate.organizer_email}
                     </p>
                   )}
@@ -201,43 +198,42 @@ export function PlaygroundCard({
           </div>
         )}
 
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-3 mb-6">
           <button
             onClick={() => setShowPlaydateModal(true)}
-            className="flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            className="btn-primary flex-1 flex items-center justify-center gap-2"
           >
-            <Calendar size={16} />
+            <Calendar size={18} />
             Schedule Playdate
           </button>
         </div>
 
         <RatingComponent playgroundId={id} onRatingUpdate={handleRatingUpdate} />
 
-        {/* Comments Section */}
         {ratings.length > 0 && (
-          <div className="mt-6 border-t pt-4">
-            <h4 className="text-sm font-medium text-gray-700 mb-3 flex items-center gap-2">
-              <MessageSquare size={16} />
+          <div className="mt-6 pt-6 border-t border-gray-100">
+            <h4 className="text-lg font-display font-semibold text-gray-800 mb-4 flex items-center gap-2">
+              <MessageSquare size={18} className="text-primary" />
               Comments
             </h4>
             <div className="space-y-4">
               {ratings.filter(r => r.comment).map((rating, index) => (
-                <div key={index} className="bg-gray-50 p-3 rounded-md">
+                <div key={index} className="bg-background-light/30 p-4 rounded-2xl">
                   <div className="flex items-center gap-2 mb-2">
                     <div className="flex items-center">
                       {[...Array(rating.rating)].map((_, i) => (
                         <Star
                           key={i}
                           size={14}
-                          className="text-yellow-400 fill-yellow-400"
+                          className="text-accent-yellow fill-accent-yellow"
                         />
                       ))}
                     </div>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-500 font-body">
                       by {rating.user_email}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700">{rating.comment}</p>
+                  <p className="text-gray-700 font-body">{rating.comment}</p>
                 </div>
               ))}
             </div>
