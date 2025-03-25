@@ -20,5 +20,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": [".bolt/app/src"]
+  "include": [".bolt/app/src", "app/src/components/components", "app/src/lib"]
 }
