@@ -49,7 +49,8 @@ jobs:
           action: "upload"
           app_location: "project"
           output_location: "project/dist"
-          skip_app_build: true
+          api_location: ""  # No API directory since Supabase is used
+          skip_app_build: false  # Ensure Azure builds the frontend correctly
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
