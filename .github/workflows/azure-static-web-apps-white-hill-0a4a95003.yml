@@ -32,13 +32,12 @@ jobs:
       - name: Install dependencies
         run: |
           cd project
-          npm ci
+          npm install  # Ensure dependencies are installed
 
-      - name: Increase Node.js Memory and Build
+      - name: Build project
         run: |
-          export NODE_OPTIONS="--max-old-space-size=4096"
           cd project
-          npm run build --debug --force
+          npm run build  # Ensure this generates the dist folder
 
       - name: Build and Deploy
         id: builddeploy
@@ -48,9 +47,9 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "project"
-          output_location: "project/dist"
-          api_location: ""  # No API directory since Supabase is used
-          skip_app_build: false  # Ensure Azure builds the frontend correctly
+          output_location: "dist"  # Ensure this matches your Vite build output
+          api_location: ""
+          skip_app_build: false
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
