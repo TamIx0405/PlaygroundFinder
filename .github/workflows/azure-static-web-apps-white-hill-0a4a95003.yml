@@ -4,50 +4,38 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+    branches:
+      - main
 
 jobs:
   build_and_deploy_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
-    timeout-minutes: 30  # Set a timeout for the entire build and deploy job
+    timeout-minutes: 30
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
-    - name: Set file permissions
-      run: chmod 644 .git/config
+      - name: Set file permissions
+        run: chmod 644 .git/config
 
-    - name: Configure git
-      run: |
-        git config --local --name-only --get-regexp http.https://github.com/.extraheader
-        git config --local --unset-all http.https://github.com/.extraheader
+      - name: Configure git
+        run: |
+          git config --local --name-only --get-regexp http.https://github.com/.extraheader
+          git config --local --unset-all http.https://github.com/.extraheader
 
-    - name: Install dependencies
-      run: |
-        echo "Installing dependencies..."
-        cd frontend
-        npm install
-        echo "Dependencies installed."
-
-    - name: Install Vite
-      run: |
-        echo "Installing Vite..."
-        cd frontend
-        npm install vite
-        echo "Vite installed."
-
-    - name: Build the project
-      run: |
-        echo "Building the project..."
-        cd frontend
-        npm run build
-        echo "Build completed."
-
-    - name: Deploy the project
-      run: |
-        echo "Deploying the project..."
-        cd frontend
-        npm run deploy
-        echo "Deploy completed."
+      - name: Build and Deploy
+        id: builddeploy
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WHITE_HILL_0A4A95003 }}
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          action: "upload"
+          app_location: "project"
+          output_location: "project/dist"
+          skip_app_build: false
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
