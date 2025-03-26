@@ -52,7 +52,7 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "project"
-          output_location: "dist"  # Ensure this matches your Vite build output
+          output_location: "dist"  
           api_location: ""
           skip_app_build: false
 
