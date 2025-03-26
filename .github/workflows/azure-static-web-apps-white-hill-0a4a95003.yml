@@ -24,24 +24,28 @@ jobs:
     - name: Install dependencies
       run: |
         echo "Installing dependencies..."
+        cd frontend
         npm install
         echo "Dependencies installed."
 
     - name: Install Vite
       run: |
         echo "Installing Vite..."
+        cd frontend
         npm install vite
         echo "Vite installed."
 
     - name: Build the project
       run: |
         echo "Building the project..."
+        cd frontend
         npm run build
         echo "Build completed."
 
     - name: Deploy the project
       run: |
         echo "Deploying the project..."
+        cd frontend
         npm run deploy
         echo "Deploy completed."
 
