@@ -30,28 +30,46 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
+   
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        console.error('Error fetching profile:', profileError);
+        toast.error('error loading profile');
+        return;
+      }
+
+   
+      if (!profile) {
+        console.warn('No profile found for user');
+        return;
+      }
+
       const { data, error } = await supabase
         .from('playground_ratings')
         .select('rating, comment')
         .eq('playground_id', playgroundId)
-        .eq('user_id', user.id);
+        .eq('user_id', user.id)
+        .maybeSingle();
 
       if (error) throw error;
 
-      // Handle case when user has a rating
-      if (data && data.length > 0) {
-        const latestRating = data[0];
-        setUserRating(latestRating);
-        setRating(latestRating.rating);
-        setComment(latestRating.comment || '');
+      if (data) {
+        setUserRating(data);
+        setRating(data.rating);
+        setComment(data.comment || '');
       } else {
-        // Reset state when no rating exists
         setUserRating(null);
         setRating(0);
         setComment('');
       }
     } catch (error) {
-      console.error('Error fetching user rating:', error);
+      console.error('Error fetching user rating', error);
+      toast.error('Error loading user rating');
     }
   }
 
@@ -59,7 +77,7 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      toast.error('Please log in to rate playgrounds');
+      toast.error('Please log in to rate');
       return;
     }
 
@@ -74,25 +92,42 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
-        throw new Error('You must be logged in to rate playgrounds');
+        throw new Error('You must be logged in to rate');
       }
 
-      // Update rating
-      const { error: ratingError } = await supabase.from('playground_ratings').upsert({
-        playground_id: playgroundId,
-        user_id: user.id,
-        rating,
-        comment
-      });
+      // Get the user's profile
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .maybeSingle();
+
+      if (profileError) {
+        throw new Error('Error loading profile');
+      }
+
+      if (!profile) {
+        throw new Error('No profile found. Load page again.');
+      }
+
+      
+      const { error: ratingError } = await supabase
+        .from('playground_ratings')
+        .upsert({
+          playground_id: playgroundId,
+          user_id: profile.id,
+          rating,
+          comment
+        });
 
       if (ratingError) throw ratingError;
 
-      toast.success('Rating updated successfully!');
+      toast.success('Rating successfully updated');
       setUserRating({ rating, comment });
       setShowCommentForm(false);
       onRatingUpdate(rating);
     } catch (error: any) {
-      toast.error(error.message || 'Failed to submit rating');
+      toast.error(error.message || 'Error setting rating');
     } finally {
       setIsSubmitting(false);
     }
@@ -121,7 +156,7 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
         ))}
         {userRating && (
           <span className="ml-2 text-sm text-gray-600">
-            Your rating: {userRating.rating}/5
+            rating: {userRating.rating}/5
           </span>
         )}
       </div>
@@ -146,7 +181,7 @@ export function RatingComponent({ playgroundId, onRatingUpdate }: RatingProps) {
               disabled={isSubmitting}
               className="bg-blue-600 text-white px-4 py-2 rounded-md text-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Rating'}
+              {isSubmitting ? 'Saving...' : 'Leave rating!'}
             </button>
             <button
               type="button"

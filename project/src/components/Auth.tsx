@@ -16,7 +16,11 @@ export function Auth() {
 
     try {
       if (mode === 'signup') {
-        // Check if username is available
+        if (!/^[a-zA-Z0-9]+$/.test(username)) {
+          throw new Error('Username can only contain letters and numbers');
+        }
+
+       
         const { data: existingUser, error: checkError } = await supabase
           .from('profiles')
           .select('username')
@@ -28,11 +32,11 @@ export function Auth() {
         }
 
         if (existingUser) {
-          throw new Error('Username already taken');
+          throw new Error('Username aleready taken :(');
         }
 
-        // Sign up the user
-        const { error } = await supabase.auth.signUp({
+    
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
@@ -42,9 +46,10 @@ export function Auth() {
           }
         });
 
-        if (error) throw error;
+        if (signUpError) throw signUpError;
+        if (!signUpData.user) throw new Error('Error creating user');
 
-        toast.success('Account created successfully! You can now log in.');
+        toast.success('Account sucessfully created! Please check your email for confirmation.');
         setMode('login');
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -52,11 +57,11 @@ export function Auth() {
           password,
         });
         if (error) throw error;
-        toast.success('Logged in successfully!');
+        toast.success('You are logged in!');
       }
     } catch (error: any) {
       console.error('Auth error:', error);
-      toast.error(error.message || 'Authentication failed');
+      toast.error(error.message || 'Authentication failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
@@ -65,45 +70,47 @@ export function Auth() {
   return (
     <div className="min-h-screen flex bg-gradient-to-b from-background-light to-background relative overflow-hidden">
       {/* Decorative elements */}
-      <div className="absolute top-40 left-15 w-20 h-20 bg-accent-yellow rounded-full opacity-60 animate-pulse"></div>
-      <div className="absolute bottom-30 right-20 w-32 h-32 bg-accent-purple rounded-full opacity-40 animate-pulse delay-300"></div>
+      <div className="absolute top-10 left-10 w-20 h-20 bg-accent-yellow rounded-full opacity-50 animate-pulse"></div>
+      <div className="absolute bottom-20 right-20 w-32 h-32 bg-accent-purple rounded-full opacity-30 animate-pulse delay-300"></div>
       <div className="absolute top-1/3 right-10 w-16 h-16 bg-accent-green rounded-full opacity-40 animate-pulse delay-700"></div>
-      
+      <div className="absolute top-1/3 right-10 w-16 h-16 bg-accent-green rounded-full opacity-40 animate-pulse delay-700"></div>
+      <div className="absolute top-1/3 right-10 w-16 h-16 bg-accent-green rounded-full opacity-40 animate-pulse delay-700"></div>
+
       {/* Floating icons */}
-      <Sun className="absolute top-20 right-9 text-accent-yellow w-8 h-8 animate-bounce" />
+      <Sun className="absolute top-1/2 left-1/2 w-8 h-8 text-accent-yellow animate-bounce transform -translate-x-1/2 -translate-y-1/2" />
       <Star className="absolute bottom-32 left-20 text-accent-orange w-6 h-6 animate-pulse" />
-      <Cloud className="absolute top-30 left-40 text-primary-light w-10 h-10 animate-pulse delay-500" />
+      <Cloud className="absolute top-40 left-32 text-primary-light w-10 h-10 animate-pulse delay-500" />
 
       {/* About Us Section */}
       <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-center relative z-10">
         <h2 className="text-5xl font-display font-bold text-black mb-8 leading-tight">
-          Welcome to<br /> HopSpot!
+          Welcome to<br />HopSpot!
         </h2>
         <div className="space-y-8">
-          <div className="flex items-start gap-6 bg-white/10 backdrop-blur-sm p-6 rounded-2xl">
-            <Heart className="mt-1 text-secondary-light" size={50} />
+          <div className="flex items-start gap-6 bg-white/20 backdrop-blur-sm p-6 rounded-2xl">
+            <Heart className="mt-1 text-secondary-light" size={28} />
             <div>
-              <h3 className="text-2xl font-display font-semibold mb-2 text-black">My Mission</h3>
-              <p className="text-black/90 font-body">
-                I have set myself the mission to create a plattform where parents can find the best playing options within thier community.
+              <h3 className="text-2xl font-display font-semibold mb-2 text-black">My mission</h3>
+              <p className="text-dark blue/90 font-body">
+              I have set myself the mission to create a plattform where parents can find the best playing options within thier community and create new friendships.
               </p>
             </div>
           </div>
-          <div className="flex items-start gap-6 bg-white/10 backdrop-blur-sm p-6 rounded-2xl">
-            <Users className="mt-1 text-accent-yellow" size={45} />
+          <div className="flex items-start gap-6 bg-white/20 backdrop-blur-sm p-6 rounded-2xl">
+            <Users className="mt-1 text-accent-yellow" size={28} />
             <div>
-              <h3 className="text-2xl font-display font-semibold mb-2 text-black">Community-Driven</h3>
+              <h3 className="text-2xl font-display font-semibold mb-2 text-black">Community driven</h3>
               <p className="text-black/90 font-body">
-                Share experiences and organize playdates with other families and friends. Your opinion matters! 
+              Share experiences and organize playdates with other families and friends. We grow thanks to your contributions and YOUR opinion matters!
               </p>
             </div>
           </div>
-          <div className="flex items-start gap-6 bg-white/10 backdrop-blur-sm p-6 rounded-2xl">
-            <MapPin className="mt-1 text-accent-green" size={45} />
+          <div className="flex items-start gap-6 bg-white/20 backdrop-blur-sm p-6 rounded-2xl">
+            <MapPin className="mt-1 text-accent-green" size={28} />
             <div>
-              <h3 className="text-2xl font-display font-semibold mb-2 text-dark-blue">Find Perfect Spots</h3>
+              <h3 className="text-2xl font-display font-semibold mb-2 text-black">Find perfect spots</h3>
               <p className="text-black/90 font-body">
-                Discover age-appropriate playgrounds with detailed information and parent reviews.
+              Discover age-appropriate playgrounds with detailed information and parent reviews.
               </p>
             </div>
           </div>
@@ -115,19 +122,19 @@ export function Auth() {
         <div className="max-w-md w-full space-y-8 card-playful p-8">
           <div className="text-center">
             <h2 className="text-4xl font-display font-bold text-gray-800 mb-2">
-              {mode === 'login' ? 'Hey there!' : 'Join Us!'}
+              {mode === 'login' ? 'Ready to explore?' : 'register your account!'}
             </h2>
             <p className="text-gray-600 font-body">
               {mode === 'login' 
-                ? "Let us find some amazing playgrounds"
-                : 'Create an account to get started'}
+                ? "discover new playgrounds and connect with other families"
+                : 'Create an account and let´s go on an adventure!'}
             </p>
           </div>
           
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <div>
-                <label htmlFor="email" className="sr-only">Email address</label>
+                <label htmlFor="email" className="sr-only">E-Mail-adress</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                     <Mail className="h-5 w-5 text-primary" />
@@ -140,13 +147,13 @@ export function Auth() {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="input-playful pl-12"
-                    placeholder="Email address"
+                    placeholder="E-Mail-adress"
                   />
                 </div>
               </div>
               {mode === 'signup' && (
                 <div>
-                  <label htmlFor="username" className="sr-only">Username</label>
+                  <label htmlFor="username" className="sr-only">user name</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                       <User className="h-5 w-5 text-primary" />
@@ -157,17 +164,19 @@ export function Auth() {
                       type="text"
                       required
                       value={username}
-                      onChange={(e) => setUsername(e.target.value)}
+                      onChange={(e) => setUsername(e.target.value.trim())}
                       className="input-playful pl-12"
-                      placeholder="username"
+                      placeholder="pick a user name"
                       pattern="[a-zA-Z0-9]+"
-                      title="Only letters and numbers allowed!"
+                      title="only letters and numbers allowed"
+                      minLength={3}
+                      maxLength={30}
                     />
                   </div>
                 </div>
               )}
               <div>
-                <label htmlFor="password" className="sr-only">Password</label>
+                <label htmlFor="password" className="sr-only">password</label>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                     <Lock className="h-5 w-5 text-primary" />
@@ -181,6 +190,7 @@ export function Auth() {
                     onChange={(e) => setPassword(e.target.value)}
                     className="input-playful pl-12"
                     placeholder="Password"
+                    minLength={6}
                   />
                 </div>
               </div>
@@ -192,7 +202,7 @@ export function Auth() {
                 disabled={isLoading}
                 className={`w-full btn-primary ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
               >
-                {isLoading ? 'Processing...' : mode === 'login' ? 'Sign in' : 'Sign up'}
+                {isLoading ? 'Processing...' : mode === 'login' ? 'login' : 'register'}
               </button>
 
               <button
@@ -201,8 +211,8 @@ export function Auth() {
                 className="w-full btn-secondary"
               >
                 {mode === 'login'
-                  ? "Don't have an account? Sign up"
-                  : 'Already have an account? Log in!'}
+                  ? "No account? Register"
+                  : 'already have an account? login'}
               </button>
             </div>
           </form>

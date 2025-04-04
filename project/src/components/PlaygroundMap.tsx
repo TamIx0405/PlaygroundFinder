@@ -1,105 +1,107 @@
 import React, { useEffect, useState } from 'react';
-import { MapPin } from 'lucide-react';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+
+delete (L.Icon.Default.prototype as any)._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
+  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
+  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+});
 
 interface Playground {
   id: string;
   name: string;
+  description: string;
   location: string;
   latitude: number;
   longitude: number;
 }
 
-export function PlaygroundMap() {
-  const [playgrounds, setPlaygrounds] = useState<Playground[]>([]);
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-  const [loading, setLoading] = useState(true);
+function MapBounds({ playgrounds }: { playgrounds: Playground[] }) {
+  const map = useMap();
 
   useEffect(() => {
-    // Get user's location
+    if (playgrounds.length > 0) {
+      const bounds = L.latLngBounds(
+        playgrounds.map(p => [p.latitude, p.longitude])
+      );
+      map.fitBounds(bounds, { padding: [50, 50] });
+    }
+  }, [playgrounds]);
+
+  return null;
+}
+
+export function PlaygroundMap() {
+  const [playgrounds, setPlaygrounds] = useState<Playground[]>([]);
+  const [center, setCenter] = useState<[number, number]>([51.1657, 10.4515]);
+
+  useEffect(() => {
+    fetchPlaygrounds();
+
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          setUserLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-          fetchNearbyPlaygrounds(position.coords.latitude, position.coords.longitude);
+          setCenter([position.coords.latitude, position.coords.longitude]);
         },
-        (error) => {
-          console.error('Error getting location:', error);
-          fetchAllPlaygrounds();
+        () => {
+          toast.error('location not found');
         }
       );
-    } else {
-      fetchAllPlaygrounds();
     }
   }, []);
 
-  async function fetchNearbyPlaygrounds(lat: number, lng: number) {
-    try {
-      const { data, error } = await supabase
-        .rpc('get_nearby_playgrounds', {
-          user_lat: lat,
-          user_lng: lng,
-          radius_km: 10
-        });
-
-      if (error) throw error;
-      setPlaygrounds(data || []);
-    } catch (error) {
-      console.error('Error fetching nearby playgrounds:', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  async function fetchAllPlaygrounds() {
+  const fetchPlaygrounds = async () => {
     try {
       const { data, error } = await supabase
         .from('playgrounds')
-        .select('id, name, location, latitude, longitude');
+        .select('*')
+        .not('latitude', 'is', null)
+        .not('longitude', 'is', null);
 
       if (error) throw error;
       setPlaygrounds(data || []);
     } catch (error) {
       console.error('Error fetching playgrounds:', error);
-    } finally {
-      setLoading(false);
+      toast.error('Error loading playgrounds');
     }
-  }
-
-  if (loading) {
-    return (
-      <div className="text-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-        <p className="mt-4 text-gray-600">Loading map...</p>
-      </div>
-    );
-  }
+  };
 
   return (
-    <div className="card-playful p-6">
-      <h2 className="text-2xl font-display font-bold text-gray-800 mb-4">Nearby Playgrounds</h2>
-      <div className="h-[400px] rounded-2xl overflow-hidden">
-        {/* Map implementation would go here - using a map library of your choice */}
-        <div className="bg-background-light h-full relative">
+    <div className="card-playful p-4">
+      <div className="w-full h-[200px] sm:h-[250px] rounded-sm overflow-hidden">
+        <MapContainer
+          center={center}
+          zoom={6}
+          style={{ height: '100%', width: '100%' }}
+          zoomControl={false} 
+        >
+          <TileLayer
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+          />
           {playgrounds.map((playground) => (
-            <div
-              key={playground.id}
-              className="absolute transform -translate-x-1/2 -translate-y-1/2"
-              style={{
-                left: `${playground.longitude}%`,
-                top: `${playground.latitude}%`
-              }}
-            >
-              <MapPin className="text-primary w-6 h-6" />
-              <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-playful whitespace-nowrap">
-                <span className="font-body text-sm">{playground.name}</span>
-              </div>
-            </div>
+            playground.latitude && playground.longitude ? (
+              <Marker
+                key={playground.id}
+                position={[playground.latitude, playground.longitude]}
+              >
+                <Popup className="playground-popup">
+                  <div className="p-2">
+                    <h3 className="font-bold text-base mb-1">{playground.name}</h3>
+                    <p className="text-sm text-gray-600 mb-1">{playground.location}</p>
+                    <p className="text-sm line-clamp-2">{playground.description}</p>
+                  </div>
+                </Popup>
+              </Marker>
+            ) : null
           ))}
-        </div>
+          <MapBounds playgrounds={playgrounds} />
+        </MapContainer>
       </div>
     </div>
   );

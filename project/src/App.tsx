@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { PlaygroundCard } from './components/PlaygroundCard';
 import { AddPlayground } from './components/AddPlayground';
+import { PlaygroundMap } from './components/PlaygroundMap';
 import { Auth } from './components/Auth';
 import { supabase } from './lib/supabase';
-import { PlusCircle, LogOut, MapPin, Sun, Cloud } from 'lucide-react';
+import { PlusCircle, LogOut, MapPin, Sun, Cloud, Bird, Fish, Rabbit } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 
 interface Playground {
@@ -15,6 +16,8 @@ interface Playground {
   min_age: number;
   max_age: number;
   created_at: string;
+  latitude: number;
+  longitude: number;
 }
 
 function App() {
@@ -73,44 +76,40 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background-light to-background relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-b from-sky-200 via-sky-100 to-sky-50 relative overflow-x-hidden">
       <Toaster position="top-right" />
       
-      {/* Decorative elements */}
-      <div className="absolute top-20 left-10 w-24 h-24 bg-accent-yellow rounded-full opacity-30 animate-pulse"></div>
-      <div className="absolute bottom-40 right-20 w-32 h-32 bg-accent-purple rounded-full opacity-20 animate-pulse delay-300"></div>
-      <Sun className="absolute top-12 right-20 text-accent-yellow w-8 h-8 animate-bounce" />
-      <Cloud className="absolute bottom-20 left-32 text-primary-light w-10 h-10 animate-pulse delay-500" />
+      <Fish className="absolute bottom-10 left-30 animated-duck" size={60} />
+      <Fish className="absolute bottom-20 right-40 animated-duck" size={75} />
       
       <header className="relative z-10 bg-white/80 backdrop-blur-sm shadow-playful">
-        <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center">
+        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
             <div className="flex items-center gap-3">
               <MapPin className="text-primary h-8 w-8" />
-              <h1 className="text-3xl font-display font-bold text-gray-800">Playground Finder</h1>
+              <h1 className="text-2xl sm:text-3xl font-display font-bold text-gray-800">HopSpot</h1>
             </div>
-            <div className="flex items-center gap-4">
-              <span className="text-gray-600 font-body">{user.email}</span>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="btn-primary flex items-center gap-2"
+                className="btn-primary flex-1 sm:flex-none flex items-center justify-center gap-2 py-2 px-4"
               >
                 <PlusCircle size={20} />
-                {showAddForm ? 'Close' : 'Add Playground'}
+                <span className="sm:inline">{showAddForm ? 'Close' : 'Add HopSpot'}</span>
               </button>
               <button
                 onClick={handleLogout}
-                className="btn-secondary flex items-center gap-2"
+                className="btn-secondary flex items-center justify-center gap-2 py-2 px-4"
               >
                 <LogOut size={20} />
-                Logout
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+      <main className="relative z-10 max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
         {showAddForm && (
           <div className="mb-8">
             <AddPlayground onSuccess={() => {
@@ -120,14 +119,18 @@ function App() {
           </div>
         )}
 
+        <div className="mb-8">
+          <PlaygroundMap />
+        </div>
+
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-4 text-gray-600 font-body">Loading playgrounds...</p>
+            <p className="mt-4 text-gray-600 font-body">Loading HopSpots...</p>
           </div>
         ) : playgrounds.length === 0 ? (
           <div className="text-center py-12 card-playful p-8">
-            <p className="text-gray-600 font-body text-lg">No playgrounds found. Add one to get started!</p>
+            <p className="text-gray-600 font-body text-lg">No playgrounds found! Please add one!</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
@@ -41,12 +41,7 @@ export function UserPlaydates() {
         .order('date', { ascending: true });
 
       if (error) throw error;
-      setPlaydates(
-        (data || []).map((playdate: any) => ({
-          ...playdate,
-          playground: Array.isArray(playdate.playground) ? playdate.playground[0] : playdate.playground,
-        }))
-      );
+      setPlaydates(data || []);
     } catch (error) {
       console.error('Error fetching user playdates:', error);
     } finally {

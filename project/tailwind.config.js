@@ -5,41 +5,43 @@ export default {
     extend: {
       colors: {
         primary: {
-          light: '#7EE7FC',
-          DEFAULT: '#4FB8E5',
-          dark: '#2B95D3'
+          light: '#93C5FD',
+          DEFAULT: '#60A5FA',
+          dark: '#2563EB'
         },
         secondary: {
-          light: '#FFB6E1',
-          DEFAULT: '#FF8AC8',
-          dark: '#FF5CAF'
+          light: '#FBA5D1',
+          DEFAULT: '#F472B6',
+          dark: '#DB2777'
         },
         accent: {
-          yellow: '#FFD53E',
-          orange: '#FF8A4C',
+          yellow: '#FCD34D',
+          orange: '#FB923C',
           green: '#4ADE80',
-          purple: '#A78BFA'
-        },
-        background: {
-          light: '#E0F2FE',
-          DEFAULT: '#93C5FD',
-          dark: '#3B82F6'
+          purple: '#C084FC',
+          pink: '#F9A8D4'
         }
       },
       fontFamily: {
         'display': ['Fredoka', 'sans-serif'],
         'body': ['Nunito', 'sans-serif']
       },
-      borderRadius: {
-        'xl': '1rem',
-        '2xl': '1.5rem',
-        '3xl': '2rem'
+      animation: {
+        'float': 'float 3s ease-in-out infinite',
+        'spin-slow': 'spin 20s linear infinite',
+        'bounce-slow': 'bounce 2s infinite',
+        'pulse-slow': 'pulse 3s infinite'
+      },
+      scale: {
+        '102': '1.02',
+        '103': '1.03',
+        '105': '1.05'
       },
       boxShadow: {
-        'playful': '0 10px 30px -10px rgba(0, 0, 0, 0.15)',
-        'playful-lg': '0 20px 40px -15px rgba(0, 0, 0, 0.2)'
+        'playful': '0 10px 30px -10px rgba(0, 0, 0, 0.1)',
+        'playful-lg': '0 20px 40px -15px rgba(0, 0, 0, 0.15)'
       }
-    },
+    }
   },
-  plugins: [],
+  plugins: []
 };
