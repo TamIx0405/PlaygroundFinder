@@ -32,7 +32,7 @@ export function Auth() {
         }
 
         if (existingUser) {
-          throw new Error('Username aleready taken :(');
+          throw new Error('Username already taken');
         }
 
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
@@ -48,7 +48,7 @@ export function Auth() {
         if (signUpError) throw signUpError;
         if (!signUpData.user) throw new Error('Error creating user');
 
-        toast.success('Account sucessfully created! Please check your email for confirmation.');
+        toast.success('Account successfully created! Please check your email for confirmation.');
         setMode('login');
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -56,7 +56,7 @@ export function Auth() {
           password,
         });
         if (error) throw error;
-        toast.success('You are logged in!');
+        toast.success('Successfully logged in!');
       }
     } catch (error: any) {
       console.error('Auth error:', error);
@@ -71,25 +71,25 @@ export function Auth() {
       <div className="flex items-start gap-4 bg-white/20 backdrop-blur-sm p-4 rounded-xl">
         <Heart className="mt-1 text-secondary-light shrink-0" size={24} />
         <div>
-          <h3 className="text-xl font-display font-semibold mb-1 text-black">My mission</h3>
+          <h3 className="text-xl font-display font-semibold mb-1 text-black">Our Mission</h3>
           <p className="text-black/90 font-body text-sm">
-            I have set myself the mission to create a plattform where parents can find the best playing options within thier community and create new friendships.
+            We create a platform where parents can find the best playing spots in their community and build new friendships.
           </p>
         </div>
       </div>
       <div className="flex items-start gap-4 bg-white/20 backdrop-blur-sm p-4 rounded-xl">
         <Users className="mt-1 text-accent-yellow shrink-0" size={24} />
         <div>
-          <h3 className="text-xl font-display font-semibold mb-1 text-black">Community driven</h3>
+          <h3 className="text-xl font-display font-semibold mb-1 text-black">Community Driven</h3>
           <p className="text-black/90 font-body text-sm">
-            Share experiences and organize playdates with other families and friends. We grow thanks to your contributions and YOUR opinion matters!
+            Share experiences and organize playdates with other families and friends. We grow thanks to your contributions and your opinion matters!
           </p>
         </div>
       </div>
       <div className="flex items-start gap-4 bg-white/20 backdrop-blur-sm p-4 rounded-xl">
         <MapPin className="mt-1 text-accent-green shrink-0" size={24} />
         <div>
-          <h3 className="text-xl font-display font-semibold mb-1 text-black">Find perfect spots</h3>
+          <h3 className="text-xl font-display font-semibold mb-1 text-black">Find Perfect Spots</h3>
           <p className="text-black/90 font-body text-sm">
             Discover age-appropriate playgrounds with detailed information and parent reviews.
           </p>
@@ -107,7 +107,6 @@ export function Auth() {
       {/* Floating icons */}
       <Sun className="absolute top-20 right-32 text-accent-yellow w-8 h-8 animate-bounce" />
       <Star className="absolute bottom-32 left-20 text-accent-orange w-6 h-6 animate-pulse" />
-    
 
       {/* About Us Section - Desktop */}
       <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-center relative z-10">
@@ -130,19 +129,19 @@ export function Auth() {
           <div className="relative z-10">
             <div className="text-center">
               <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-800 mb-2">
-                {mode === 'login' ? 'Ready to explore?' : 'register your account!'}
+                {mode === 'login' ? 'Welcome Back!' : 'Create Account'}
               </h2>
               <p className="text-gray-600 font-body">
                 {mode === 'login' 
-                  ? "discover new playgrounds and connect with other families"
-                  : 'Create an account and let´s go on an adventure!'}
+                  ? "Discover playgrounds and connect with families"
+                  : 'Join our community and start your adventure'}
               </p>
             </div>
             
             <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="email" className="sr-only">E-Mail-adress</label>
+                  <label htmlFor="email" className="sr-only">Email address</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                       <Mail className="h-5 w-5 text-primary" />
@@ -155,13 +154,13 @@ export function Auth() {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="input-playful pl-12"
-                      placeholder="E-Mail-adress"
+                      placeholder="Email address"
                     />
                   </div>
                 </div>
                 {mode === 'signup' && (
                   <div>
-                    <label htmlFor="username" className="sr-only">user name</label>
+                    <label htmlFor="username" className="sr-only">Username</label>
                     <div className="relative">
                       <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                         <User className="h-5 w-5 text-primary" />
@@ -174,9 +173,9 @@ export function Auth() {
                         value={username}
                         onChange={(e) => setUsername(e.target.value.trim())}
                         className="input-playful pl-12"
-                        placeholder="pick a user name"
+                        placeholder="Choose a username"
                         pattern="[a-zA-Z0-9]+"
-                        title="only letters and numbers allowed"
+                        title="Only letters and numbers allowed"
                         minLength={3}
                         maxLength={30}
                       />
@@ -184,7 +183,7 @@ export function Auth() {
                   </div>
                 )}
                 <div>
-                  <label htmlFor="password" className="sr-only">password</label>
+                  <label htmlFor="password" className="sr-only">Password</label>
                   <div className="relative">
                     <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
                       <Lock className="h-5 w-5 text-primary" />
@@ -210,7 +209,7 @@ export function Auth() {
                   disabled={isLoading}
                   className={`w-full btn-primary ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
-                  {isLoading ? 'Processing...' : mode === 'login' ? 'login' : 'register'}
+                  {isLoading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Create Account'}
                 </button>
 
                 <button
@@ -219,8 +218,8 @@ export function Auth() {
                   className="w-full btn-secondary"
                 >
                   {mode === 'login'
-                    ? "No account? Register"
-                    : 'already have an account? login'}
+                    ? "Don't have an account? Sign up"
+                    : 'Already have an account? Sign in'}
                 </button>
               </div>
             </form>

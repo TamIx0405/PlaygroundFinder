@@ -6,6 +6,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
+// Fix for default marker icons in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -46,7 +47,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [position, setPosition] = useState<Location | null>(null);
-  const [center, setCenter] = useState<[number, number]>([51.1657, 10.4515]);
+  const [center, setCenter] = useState<[number, number]>([51.1657, 10.4515]); // Default to center of Germany
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [geocodingAttempts, setGeocodingAttempts] = useState(0);
 
@@ -69,7 +70,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
       return false;
     }
     if (!streetName.trim()) {
-      toast.error('please enter a street name');
+      toast.error('Please enter a street name');
       return false;
     }
     if (!city.trim()) {
@@ -77,7 +78,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
       return false;
     }
     if (!/^\d{5}$/.test(zipCode)) {
-      toast.error('please enter a valid zip code');
+      toast.error('Please enter a valid zip code');
       return false;
     }
     return true;
@@ -86,7 +87,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
   const geocodeAddress = async () => {
     if (!validateAddressFields() || isGeocoding) return;
     if (geocodingAttempts >= 3) {
-      toast.error('Adress not found. Please check and try again');
+      toast.error('Address not found. Please check and try again');
       return;
     }
 
@@ -114,7 +115,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
 
       const data = await response.json();
       if (!data || typeof data.latitude !== 'number' || typeof data.longitude !== 'number') {
-        throw new Error('invalid response from geocoding service');
+        throw new Error('Invalid response from geocoding service');
       }
 
       setPosition({
@@ -125,7 +126,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
       setGeocodingAttempts(0);
 
       if (!data.exact_match) {
-        toast.error('Location not found but the zip code is correct, please verify other entries!', {
+        toast.error('Location found, but the zip code might not match exactly. Please verify the address.', {
           style: {
             background: '#FEF3C7',
             color: '#92400E',
@@ -139,9 +140,9 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
       setGeocodingAttempts(prev => prev + 1);
       
       if (error.name === 'TimeoutError') {
-        toast.error('Timeout for the request. Please try again.');
+        toast.error('Request timeout. Please try again.');
       } else if (error.name === 'AbortError') {
-        toast.error('The request was canceled. Please try again.');
+        toast.error('Request was canceled. Please try again.');
       } else {
         toast.error(error.message || 'Location could not be found. Please check the address.');
       }
@@ -241,7 +242,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
         await uploadImage(playground.id, user.id);
       }
 
-      toast.success('Playground added successfully');
+      toast.success('Playground added successfully!');
       onSuccess();
       
       setName('');
@@ -256,7 +257,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
       setImagePreview(null);
       setPosition(null);
     } catch (error: any) {
-      toast.error(error.message || 'An error has accurred while adding the playground, please try again');
+      toast.error(error.message || 'Error adding playground. Please try again.');
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -265,7 +266,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4 max-w-lg mx-auto p-6 bg-white rounded-lg shadow">
-      <h2 className="text-2xl font-bold mb-6"> Create a new Play Spot!</h2>
+      <h2 className="text-2xl font-bold mb-6">Add a new playground</h2>
       
       <div>
         <label className="block text-sm font-medium text-gray-700">Name</label>
@@ -286,14 +287,14 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
           onChange={(e) => setDescription(e.target.value)}
           className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
           rows={3}
-          placeholder="Describe the playground"
+          placeholder="Describe the playground and its equipment"
           required
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Street name</label>
+          <label className="block text-sm font-medium text-gray-700">Street number</label>
           <input
             type="text"
             value={streetNumber}
@@ -305,13 +306,13 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Street</label>
+          <label className="block text-sm font-medium text-gray-700">Street name</label>
           <input
             type="text"
             value={streetName}
             onChange={(e) => setStreetName(e.target.value)}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder="Mainstreet"
+            placeholder="Main Street"
             required
           />
         </div>
@@ -319,19 +320,19 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">City/town</label>
+          <label className="block text-sm font-medium text-gray-700">City</label>
           <input
             type="text"
             value={city}
             onChange={(e) => setCity(e.target.value)}
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder="Narnia"
+            placeholder="Berlin"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Postal code</label>
+          <label className="block text-sm font-medium text-gray-700">ZIP code</label>
           <input
             type="text"
             value={zipCode}
@@ -350,8 +351,8 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-        Location is automatically determined from the address
-        {isGeocoding && ' (Searching...)'}
+          Location is automatically determined from the address
+          {isGeocoding && ' (Searching...)'}
         </label>
         <div className="h-[300px] rounded-lg overflow-hidden">
           <MapContainer
@@ -382,7 +383,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700">Max age</label>
+          <label className="block text-sm font-medium text-gray-700">Maximum age</label>
           <input
             type="number"
             value={maxAge}
@@ -400,7 +401,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
           <label className="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
             <div className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-md hover:border-blue-500">
               <Upload size={20} />
-              <span>Choose a file</span>
+              <span>Choose file</span>
             </div>
             <input
               type="file"
@@ -419,7 +420,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
           <div className="mt-2">
             <img
               src={imagePreview}
-              alt="Vorschau"
+              alt="Preview"
               className="h-32 w-auto object-cover rounded-md"
             />
           </div>
@@ -431,7 +432,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
         disabled={isSubmitting || isGeocoding}
         className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
       >
-        {isSubmitting ? 'adding...' : isGeocoding ? 'Searching location...' : 'Add playground'}
+        {isSubmitting ? 'Adding...' : isGeocoding ? 'Searching location...' : 'Add playground'}
       </button>
     </form>
   );

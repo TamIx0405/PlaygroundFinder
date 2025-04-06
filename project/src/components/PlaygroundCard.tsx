@@ -247,8 +247,8 @@ export function PlaygroundCard({
 
       toast.success(
         newStatus === 'joined' 
-          ? 'You have joined the playdate!' 
-          : 'You have cancelled your participation!'
+          ? 'Successfully joined the playdate!' 
+          : 'Successfully left the playdate!'
       );
 
       await fetchUpcomingPlaydates();
@@ -287,7 +287,7 @@ export function PlaygroundCard({
             </div>
             <div className="flex items-center gap-1">
               <Users size={16} className="text-secondary" />
-              <span className="font-body text-sm">Alter {minAge}-{maxAge}</span>
+              <span className="font-body text-sm">Ages {minAge}-{maxAge}</span>
             </div>
             {averageRating !== null && (
               <div className="flex items-center gap-1 ml-auto">
@@ -307,7 +307,7 @@ export function PlaygroundCard({
                 onClick={() => setShowAllDescription(!showAllDescription)}
                 className="text-primary text-sm font-medium hover:underline mt-1"
               >
-                {showAllDescription ? 'Weniger anzeigen' : 'Mehr anzeigen'}
+                {showAllDescription ? 'Show less' : 'Show more'}
               </button>
             )}
           </div>
@@ -315,7 +315,7 @@ export function PlaygroundCard({
 
         {upcomingPlaydates.length > 0 && (
           <div className="mt-6">
-            <h4 className="text-lg font-display font-semibold text-gray-800 mb-3">Upcomming playdates</h4>
+            <h4 className="text-lg font-display font-semibold text-gray-800 mb-3">Upcoming Playdates</h4>
             <div className="space-y-3">
               {upcomingPlaydates.map((playdate) => (
                 <div 
@@ -331,7 +331,7 @@ export function PlaygroundCard({
                     <div className="flex items-center gap-2 text-primary-dark">
                       <Calendar size={16} />
                       <span className="font-body font-medium text-sm">
-                        {format(new Date(playdate.date), 'dd.MM.yyyy HH:mm')}
+                        {format(new Date(playdate.date), 'MMM d, yyyy h:mm a')}
                       </span>
                     </div>
                     {selectedPlaydate === playdate.id && (
@@ -350,12 +350,12 @@ export function PlaygroundCard({
                         {userParticipation[playdate.id] === 'joined' ? (
                           <>
                             <UserMinus size={14} />
-                            <span className="hidden sm:inline">cancel</span>
+                            <span className="hidden sm:inline">Leave</span>
                           </>
                         ) : (
                           <>
                             <UserPlus size={14} />
-                            <span className="hidden sm:inline">join</span>
+                            <span className="hidden sm:inline">Join</span>
                           </>
                         )}
                       </button>
@@ -364,7 +364,7 @@ export function PlaygroundCard({
                   <p className="text-gray-700 font-body text-sm mt-2 line-clamp-2">{playdate.description}</p>
                   <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1">
                     <p className="text-xs text-gray-500 font-body">
-                      created by: {playdate.organizer.username}
+                      Organized by: {playdate.organizer.username}
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {playdate.participants.map((participant, index) => (
@@ -393,8 +393,8 @@ export function PlaygroundCard({
             className="btn-primary flex-1 flex items-center justify-center gap-2 text-sm"
           >
             <Calendar size={18} />
-            <span className="hidden sm:inline">Schedeule playdate</span>
-            <span className="sm:hidden">Schedeule</span>
+            <span className="hidden sm:inline">Schedule Playdate</span>
+            <span className="sm:hidden">Schedule</span>
           </button>
         </div>
 
@@ -406,7 +406,7 @@ export function PlaygroundCard({
           <div className="mt-6 pt-6 border-t border-gray-100">
             <h4 className="text-lg font-display font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <MessageSquare size={18} className="text-primary" />
-              Comments
+              Reviews
             </h4>
             <div className="space-y-4">
               {ratings.filter(r => r.comment).map((rating, index) => (
@@ -422,7 +422,7 @@ export function PlaygroundCard({
                       ))}
                     </div>
                     <span className="text-sm text-gray-500 font-body">
-                      von {rating.user.username}
+                      by {rating.user.username}
                     </span>
                   </div>
                   <p className="text-gray-700 font-body text-sm">{rating.comment}</p>

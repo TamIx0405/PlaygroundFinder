@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
-import { PlaygroundCard } from './components/PlaygroundCard';
+import { PlaygroundCard as PlaygroundCardComponent } from './components/PlaygroundCard';
 import { AddPlayground } from './components/AddPlayground';
 import { PlaygroundMap } from './components/PlaygroundMap';
 import { Auth } from './components/Auth';
 import { Logo } from './components/Logo';
 import { supabase } from './lib/supabase';
-import { PlusCircle, LogOut, Bird, Fish, Rabbit } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import type { User } from '@supabase/supabase-js';
 
 interface Playground {
@@ -80,11 +80,6 @@ function App() {
     <div className="min-h-screen bg-gradient-to-b from-sky-200 via-sky-100 to-sky-50 relative overflow-x-hidden">
       <Toaster position="top-right" />
       
-      {/* Interactive background elements */}
-      <Bird className="animated-bird" size={24} />
-      <Fish className="animated-duck" size={20} />
-      <Rabbit className="animated-rabbit" size={20} />
-      
       <header className="relative z-10 bg-white/80 backdrop-blur-sm shadow-playful">
         <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
@@ -96,15 +91,15 @@ function App() {
                 onClick={() => setShowAddForm(!showAddForm)}
                 className="btn-primary flex-1 sm:flex-none flex items-center justify-center gap-2 py-2 px-4"
               >
-                <PlusCircle size={20} />
-                <span className="sm:inline">{showAddForm ? 'Schließen' : 'Spielplatz hinzufügen'}</span>
+                
+                <span className="sm:inline">{showAddForm ? 'Close' : 'Add a HopSpot'}</span>
               </button>
               <button
                 onClick={handleLogout}
                 className="btn-secondary flex items-center justify-center gap-2 py-2 px-4"
               >
                 <LogOut size={20} />
-                <span className="hidden sm:inline">Abmelden</span>
+                <span className="hidden sm:inline">log out</span>
               </button>
             </div>
           </div>
@@ -137,7 +132,7 @@ function App() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {playgrounds.map((playground) => (
-              <PlaygroundCard
+              <PlaygroundCardComponent
                 key={playground.id}
                 id={playground.id}
                 name={playground.name}
@@ -151,6 +146,40 @@ function App() {
           </div>
         )}
       </main>
+    </div>
+  );
+}
+
+interface PlaygroundCardProps {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  minAge: number;
+  maxAge: number;
+  imageUrl: string;
+}
+
+export function PlaygroundCard({
+  id,
+  name,
+  description,
+  location,
+  minAge,
+  maxAge,
+  imageUrl,
+}: PlaygroundCardProps): JSX.Element {
+  return (
+    <div className="card">
+      <img src={imageUrl} alt={`${name} image`} className="card-image" />
+      <div className="card-content">
+        <h3>{name}</h3>
+        <p>{description}</p>
+        <p>{location}</p>
+        <p>
+          Age Range: {minAge} - {maxAge}
+        </p>
+      </div>
     </div>
   );
 }
