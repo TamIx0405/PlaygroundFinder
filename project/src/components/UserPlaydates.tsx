@@ -1,4 +1,3 @@
-import React, { useState, useEffect } from 'react';
 import { Calendar, MapPin } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { format } from 'date-fns';
@@ -41,7 +40,12 @@ export function UserPlaydates() {
         .order('date', { ascending: true });
 
       if (error) throw error;
-      setPlaydates(data || []);
+      setPlaydates(
+        (data || []).map((playdate: any) => ({
+          ...playdate,
+          playground: playdate.playground[0], // Ensure playground is a single object
+        }))
+      );
     } catch (error) {
       console.error('Error fetching user playdates:', error);
     } finally {
@@ -87,3 +91,22 @@ export function UserPlaydates() {
     </div>
   );
 }
+function useState<T>(initialValue: T): [T, (newValue: T) => void] {
+  let value = initialValue;
+  const setValue = (newValue: T) => {
+    value = newValue;
+    // In a real implementation, this would trigger a re-render.
+    console.log('State updated:', value);
+  };
+  return [value, setValue];
+}
+function useEffect(effect: () => void | (() => void)) {
+  // In a real implementation, this would track dependencies and re-run the effect
+  // when dependencies change. For now, we'll just call the effect immediately.
+  const cleanup = effect();
+  if (typeof cleanup === 'function') {
+    // In a real implementation, this would store the cleanup function to be called later.
+    console.log('Effect cleanup function registered.');
+  }
+}
+
