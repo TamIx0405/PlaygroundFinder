@@ -104,10 +104,6 @@ export function Auth() {
       <div className="absolute bottom-20 right-20 w-32 h-32 bg-accent-purple rounded-full opacity-30 animate-pulse delay-300"></div>
       <div className="absolute top-1/3 right-10 w-16 h-16 bg-accent-green rounded-full opacity-40 animate-pulse delay-700"></div>
 
-      {/* Floating icons */}
-      <Sun className="absolute top-20 right-32 text-accent-yellow w-8 h-8 animate-bounce" />
-      <Star className="absolute bottom-32 left-20 text-accent-orange w-6 h-6 animate-pulse" />
-
       {/* About Us Section - Desktop */}
       <div className="hidden lg:flex lg:w-1/2 p-12 flex-col justify-center relative z-10">
         <Logo size="xl" className="mb-12" />
@@ -123,17 +119,16 @@ export function Auth() {
         </div>
 
         <div className="w-full max-w-md space-y-8 card-playful p-6 lg:p-8 relative">
-          {/* Yellow circle decoration */}
-          <div className="absolute -top-6 -left-6 w-24 h-24 bg-accent-yellow rounded-full opacity-50 animate-pulse"></div>
+
           
           <div className="relative z-10">
             <div className="text-center">
               <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-800 mb-2">
-                {mode === 'login' ? 'Welcome Back!' : 'Create Account'}
+                {mode === 'login' ? 'Hey! want to play?' : 'Create Account'}
               </h2>
               <p className="text-gray-600 font-body">
                 {mode === 'login' 
-                  ? "Discover playgrounds and connect with families"
+                  ? "find and add new playgrounds and connect with families"
                   : 'Join our community and start your adventure'}
               </p>
             </div>
