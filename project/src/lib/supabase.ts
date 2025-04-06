@@ -7,6 +7,20 @@ if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
+// Clear any potentially corrupted tokens
+try {
+  const currentSession = localStorage.getItem('playground-finder-auth');
+  if (currentSession) {
+    const session = JSON.parse(currentSession);
+    if (!session.refresh_token) {
+      localStorage.removeItem('playground-finder-auth');
+    }
+  }
+} catch (error) {
+  // If there's any error parsing the session, remove it
+  localStorage.removeItem('playground-finder-auth');
+}
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     persistSession: true,
@@ -14,5 +28,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: window.localStorage,
     autoRefreshToken: true,
     detectSessionInUrl: true
+  }
+});
+
+// Add helper to check if session is valid
+export const isSessionValid = async () => {
+  const { data: { session }, error } = await supabase.auth.getSession();
+  return !error && session !== null;
+};
+
+supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'TOKEN_REFRESHED' && !session) {
+    // If token refresh fails, clear the session
+    localStorage.removeItem('playground-finder-auth');
   }
 });
