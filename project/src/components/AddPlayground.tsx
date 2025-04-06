@@ -351,7 +351,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Location is automatically determined from the address
+          Location will be automatically determined from the address
           {isGeocoding && ' (Searching...)'}
         </label>
         <div className="h-[300px] rounded-lg overflow-hidden">
