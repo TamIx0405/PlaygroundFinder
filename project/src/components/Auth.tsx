@@ -71,7 +71,7 @@ export function Auth() {
       <div className="flex items-start gap-4 bg-white/20 backdrop-blur-sm p-4 rounded-xl">
         <Heart className="mt-1 text-secondary-light shrink-0" size={24} />
         <div>
-          <h3 className="text-xl font-display font-semibold mb-1 text-black">Our Mission</h3>
+          <h3 className="text-xl font-display font-semibold mb-1 text-black">Our mission</h3>
           <p className="text-black/90 font-body text-sm">
             We create a platform where parents can find the best playing spots in their community and build new friendships.
           </p>
@@ -80,7 +80,7 @@ export function Auth() {
       <div className="flex items-start gap-4 bg-white/20 backdrop-blur-sm p-4 rounded-xl">
         <Users className="mt-1 text-accent-yellow shrink-0" size={24} />
         <div>
-          <h3 className="text-xl font-display font-semibold mb-1 text-black">Community Driven</h3>
+          <h3 className="text-xl font-display font-semibold mb-1 text-black">Community driven</h3>
           <p className="text-black/90 font-body text-sm">
             Share experiences and organize playdates with other families and friends. We grow thanks to your contributions and your opinion matters!
           </p>
@@ -89,7 +89,7 @@ export function Auth() {
       <div className="flex items-start gap-4 bg-white/20 backdrop-blur-sm p-4 rounded-xl">
         <MapPin className="mt-1 text-accent-green shrink-0" size={24} />
         <div>
-          <h3 className="text-xl font-display font-semibold mb-1 text-black">Find Perfect Spots</h3>
+          <h3 className="text-xl font-display font-semibold mb-1 text-black">Find perfect spots</h3>
           <p className="text-black/90 font-body text-sm">
             Discover age-appropriate playgrounds with detailed information and parent reviews.
           </p>
