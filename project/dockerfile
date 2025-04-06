@@ -1,0 +1,29 @@
+# Schritt 1: App bauen
+FROM node:20 AS build
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm install
+
+COPY . . 
+RUN npm run build
+
+# Schritt 2: Gebaute Dateien mit nginx serven
+FROM nginx:alpine
+
+# Überprüfe, ob nginx installiert ist
+RUN nginx -v
+
+# Lösche das Standard-HTML von nginx
+RUN rm -rf /usr/share/nginx/html/*
+
+# Kopiere die gebauten Dateien aus dem vorherigen Build
+COPY --from=build /app/dist /usr/share/nginx/html
+
+# Exponiere Port 80 für den Container
+EXPOSE 80
+
+# Starte nginx im Hintergrund
+CMD ["nginx", "-g", "daemon off;"]
+
