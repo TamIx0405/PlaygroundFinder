@@ -12,7 +12,7 @@ async function searchLocation(query: string, options: { limit?: number; countryc
   const params = new URLSearchParams({
     q: query,
     format: 'json',
-    countrycodes: options.countrycodes || 'de', // Set default country to Germany
+    countrycodes: options.countrycodes || 'de',
     addressdetails: (options.addressdetails || 1).toString(),
     limit: (options.limit || 10).toString()
   });
@@ -35,7 +35,7 @@ async function searchLocation(query: string, options: { limit?: number; countryc
     }
 
     const results = await response.json();
-    
+
     if (!Array.isArray(results)) {
       throw new Error('Invalid response format from geocoding service');
     }
@@ -49,29 +49,26 @@ async function searchLocation(query: string, options: { limit?: number; countryc
 
 function validateAddress(address: string): { streetAddress: string; city: string } {
   const addressParts = address.split(',').map(part => part.trim());
-  
+
   if (addressParts.length < 2) {
-    throw new Error('Bitte geben Sie Straße und Stadt an (z.B. "Hauptstraße 1, Berlin")');
+    throw new Error('Please enter at least street and city');
   }
 
   const streetAddress = addressParts[0];
   const city = addressParts[1];
 
-  // Validate street address format (street name + number, as common in Germany)
-  // Allow both "Hauptstraße 1" and "1 Hauptstraße" formats
-  const streetMatch = streetAddress.match(/^(\d+\s+\w+|\w+\s+\d+)/);
-  if (!streetMatch) {
-    throw new Error('Ungültiges Straßenformat. Bitte geben Sie Straßennamen und Hausnummer an (z.B. "Hauptstraße 1" oder "1 Hauptstraße")');
+  if (streetAddress.length < 2) {
+    throw new Error('Invalid street format. Please provide at least the street name');
   }
 
   if (city.length < 2) {
-    throw new Error('Bitte geben Sie einen gültigen Stadtnamen an');
+    throw new Error('Please provide a valid city name');
   }
 
   return { streetAddress, city };
 }
 
-Deno.serve(async (req) => {
+serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -82,23 +79,22 @@ Deno.serve(async (req) => {
     }
 
     const { zipCode, address } = await req.json();
-    
+
     if (!zipCode || typeof zipCode !== 'string') {
-      throw new Error('Postleitzahl ist erforderlich');
+      throw new Error('ZIP code is required');
     }
 
     if (!address || typeof address !== 'string') {
-      throw new Error('Adresse ist erforderlich');
+      throw new Error('Address is required');
     }
 
-    // Validate German postal code format (5 digits)
     if (!/^\d{5}$/.test(zipCode)) {
-      throw new Error('Ungültige Postleitzahl. Bitte geben Sie eine 5-stellige Postleitzahl ein.');
+      throw new Error('Invalid ZIP code. Please enter a 5-digit ZIP code.');
     }
 
     const cleanAddress = address.trim();
-    if (cleanAddress.length < 5) {
-      throw new Error('Adresse ist zu kurz. Bitte geben Sie eine gültige Straßenadresse ein.');
+    if (cleanAddress.length < 3) {
+      throw new Error('Address is too short. Please enter a valid street address.');
     }
 
     const { streetAddress, city } = validateAddress(cleanAddress);
@@ -107,15 +103,13 @@ Deno.serve(async (req) => {
     let searchAttempts = 0;
     const maxAttempts = 4;
 
-    // Strategy 1: Full address with ZIP code
     console.log('Strategy 1: Trying full address with ZIP code');
-    results = await searchLocation(`${cleanAddress} ${zipCode}`, { 
+    results = await searchLocation(`${cleanAddress} ${zipCode}`, {
       limit: 5,
       countrycodes: 'de'
     });
     searchAttempts++;
 
-    // Strategy 2: Street address with city and ZIP code
     if (!results.length && searchAttempts < maxAttempts) {
       console.log('Strategy 2: Trying street address with city and ZIP code');
       results = await searchLocation(`${streetAddress}, ${city} ${zipCode}`, {
@@ -125,7 +119,6 @@ Deno.serve(async (req) => {
       searchAttempts++;
     }
 
-    // Strategy 3: Street address with ZIP code
     if (!results.length && searchAttempts < maxAttempts) {
       console.log('Strategy 3: Trying street address with ZIP code');
       results = await searchLocation(`${streetAddress} ${zipCode}`, {
@@ -135,20 +128,12 @@ Deno.serve(async (req) => {
       searchAttempts++;
     }
 
-    // Strategy 4: ZIP code lookup to get state (Bundesland)
     if (!results.length && searchAttempts < maxAttempts) {
-      console.log('Strategy 4: Looking up ZIP code to get state');
-      const zipResults = await searchLocation(zipCode, {
-        limit: 1,
+      console.log('Strategy 4: Trying city and ZIP code');
+      results = await searchLocation(`${city} ${zipCode}`, {
+        limit: 5,
         countrycodes: 'de'
       });
-      if (zipResults.length && zipResults[0].address?.state) {
-        const state = zipResults[0].address.state;
-        results = await searchLocation(`${streetAddress}, ${city}, ${state}`, {
-          limit: 5,
-          countrycodes: 'de'
-        });
-      }
       searchAttempts++;
     }
 
@@ -164,11 +149,11 @@ Deno.serve(async (req) => {
       const longitude = Number(location.lon);
 
       if (isNaN(latitude) || isNaN(longitude)) {
-        throw new Error('Ungültige Koordinaten vom Geocoding-Service erhalten');
+        throw new Error('Received invalid coordinates from the geocoding service');
       }
 
       if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-        throw new Error('Ungültige Koordinaten: außerhalb des gültigen Bereichs');
+        throw new Error('Invalid coordinates: out of valid range');
       }
 
       return new Response(
@@ -186,10 +171,10 @@ Deno.serve(async (req) => {
     }
 
     throw new Error(
-      'Adresse nicht gefunden. Bitte überprüfen Sie:\n' +
-      '1. Die Hausnummer und der Straßenname sind korrekt\n' +
-      '2. Der Stadtname ist richtig geschrieben\n' +
-      '3. Die Postleitzahl stimmt mit der Adresse überein'
+      'Address not found. Please check:\n' +
+      '1. The street name is correct\n' +
+      '2. The city name is spelled correctly\n' +
+      '3. The ZIP code matches the address'
     );
 
   } catch (error) {
@@ -198,19 +183,19 @@ Deno.serve(async (req) => {
     let status = 400;
     let message = error.message;
 
-    if (message.includes('nicht gefunden')) {
+    if (message.includes('not found')) {
       status = 404;
     } else if (message.includes('service error')) {
       status = 503;
-      message = 'Der Geocoding-Service ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut.';
+      message = 'The geocoding service is temporarily unavailable. Please try again later.';
     }
 
     return new Response(
-      JSON.stringify({ 
+      JSON.stringify({
         error: message,
         status
       }),
-      { 
+      {
         status,
         headers: corsHeaders
       }

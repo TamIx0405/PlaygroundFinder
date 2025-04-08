@@ -7,7 +7,7 @@ import { Auth } from './components/Auth';
 import { Logo } from './components/Logo';
 import { UserCalendar } from './components/UserCalendar';
 import { supabase } from './lib/supabase';
-import { LogOut } from 'lucide-react';
+import { PlusCircle, LogOut, Calendar, ChevronUp, ChevronDown } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface Hopspot {
@@ -27,6 +27,7 @@ function App() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [showMobileCalendar, setShowMobileCalendar] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -89,14 +90,15 @@ function App() {
       </div>
       
       <header className="relative z-10 bg-white/80 backdrop-blur-sm shadow-playful">
-        <div className="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-3 items-center">
+        <div className="max-w-7xl mx-auto py-2 sm:py-4 px-3 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-3 items-center gap-2">
             {/* Left section */}
             <div className="flex justify-start">
               <button
                 onClick={() => setShowAddForm(!showAddForm)}
-                className="btn-primary flex items-center justify-center gap-2 h-10 px-4"
+                className="btn-primary flex items-center justify-center gap-1 sm:gap-2 h-8 sm:h-10 px-2 sm:px-4 text-sm sm:text-base"
               >
+                <PlusCircle size={18} />
                 <span className="hidden sm:inline">{showAddForm ? 'Close' : 'Add Hopspot'}</span>
                 <span className="sm:hidden">{showAddForm ? 'Close' : 'Add'}</span>
               </button>
@@ -104,16 +106,23 @@ function App() {
 
             {/* Center section - Logo */}
             <div className="flex justify-center">
-              <Logo size="lg" className="transform hover:scale-105 transition-transform cursor-pointer" />
+              <Logo size="sm" className="sm:hidden transform hover:scale-105 transition-transform cursor-pointer" />
+              <Logo size="lg" className="hidden sm:flex transform hover:scale-105 transition-transform cursor-pointer" />
             </div>
 
             {/* Right section */}
-            <div className="flex justify-end">
+            <div className="flex justify-end gap-1 sm:gap-2">
+              <button
+                onClick={() => setShowMobileCalendar(!showMobileCalendar)}
+                className="lg:hidden btn-secondary flex items-center justify-center h-8 sm:h-10 w-8 sm:w-10 p-0"
+              >
+                <Calendar size={18} />
+              </button>
               <button
                 onClick={handleLogout}
-                className="btn-secondary flex items-center justify-center gap-2 h-10 px-4"
+                className="btn-secondary flex items-center justify-center gap-1 sm:gap-2 h-8 sm:h-10 px-2 sm:px-4 text-sm sm:text-base"
               >
-                <LogOut size={20} />
+                <LogOut size={18} />
                 <span className="hidden sm:inline">Logout</span>
               </button>
             </div>
@@ -121,7 +130,7 @@ function App() {
         </div>
       </header>
 
-      <main className="relative z-10 max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+      <main className="relative z-10 max-w-7xl mx-auto py-4 sm:py-6 px-3 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-3 lg:gap-8">
           <div className="lg:col-span-2">
             {showAddForm && (
@@ -147,7 +156,7 @@ function App() {
                 <p className="text-gray-600 font-body text-lg">No hopspots found. Add one!</p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                 {hopspots.map((hopspot) => (
                   <PlaygroundCard
                     key={hopspot.id}
@@ -166,8 +175,18 @@ function App() {
           <div className="hidden lg:block">
             <UserCalendar />
           </div>
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg rounded-t-3xl transform transition-transform duration-300 ease-in-out">
-            <div className="p-4">
+          
+          {/* Mobile Calendar */}
+          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg rounded-t-3xl transform transition-transform duration-300 ease-in-out z-20"
+               style={{ transform: showMobileCalendar ? 'translateY(0)' : 'translateY(calc(100% - 40px))' }}>
+            <button
+              onClick={() => setShowMobileCalendar(!showMobileCalendar)}
+              className="absolute -top-2 left-1/2 transform -translate-x-1/2 -translate-y-full bg-white rounded-t-xl p-2 shadow-md flex items-center gap-2 text-gray-600"
+            >
+              <Calendar size={20} />
+              {showMobileCalendar ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
+            </button>
+            <div className="p-4 max-h-[80vh] overflow-y-auto">
               <UserCalendar />
             </div>
           </div>

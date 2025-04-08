@@ -177,122 +177,129 @@ export function PlaydateComponent({ playgroundId, playgroundName, onClose }: Pla
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-3xl max-w-md w-full p-6 card-playful">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-display font-bold text-gray-800">Schedule a Playdate</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X size={24} />
-          </button>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-3 sm:p-4 z-50 overflow-y-auto">
+      <div className="bg-white rounded-3xl w-full max-w-md card-playful">
+        <div className="sticky top-0 bg-white z-10 px-4 sm:px-6 pt-4 sm:pt-6 pb-4 border-b border-gray-100 rounded-t-3xl">
+          <div className="flex justify-between items-center">
+            <h2 className="text-xl sm:text-2xl font-display font-bold text-gray-800">Schedule a Playdate</h2>
+            <button 
+              onClick={onClose}
+              className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+            >
+              <X size={24} className="text-gray-500 hover:text-gray-700" />
+            </button>
+          </div>
         </div>
 
-        {!playdateId ? (
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Playground</label>
-              <p className="text-lg font-display font-semibold text-primary">{playgroundName}</p>
-            </div>
+        <div className="p-4 sm:p-6">
+          {!playdateId ? (
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Playground</label>
+                <p className="text-lg font-display font-semibold text-primary">{playgroundName}</p>
+              </div>
 
-            <div>
-              <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
-                Date
-              </label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary" size={20} />
-                <input
-                  type="date"
-                  id="date"
+              <div>
+                <label htmlFor="date" className="block text-sm font-medium text-gray-700 mb-1">
+                  Date
+                </label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary" size={20} />
+                  <input
+                    type="date"
+                    id="date"
+                    required
+                    value={date}
+                    onChange={(e) => setDate(e.target.value)}
+                    min={new Date().toISOString().split('T')[0]}
+                    className="input-playful pl-12"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
+                  Time
+                </label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary" size={20} />
+                  <input
+                    type="time"
+                    id="time"
+                    required
+                    value={time}
+                    onChange={(e) => setTime(e.target.value)}
+                    className="input-playful pl-12"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                  Description
+                </label>
+                <textarea
+                  id="description"
                   required
-                  value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  min={new Date().toISOString().split('T')[0]}
-                  className="input-playful pl-12"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  rows={3}
+                  className="input-playful"
+                  placeholder="Add any details about the playdate..."
                 />
               </div>
-            </div>
 
-            <div>
-              <label htmlFor="time" className="block text-sm font-medium text-gray-700 mb-1">
-                Time
-              </label>
-              <div className="relative">
-                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-primary" size={20} />
-                <input
-                  type="time"
-                  id="time"
-                  required
-                  value={time}
-                  onChange={(e) => setTime(e.target.value)}
-                  className="input-playful pl-12"
-                />
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full btn-primary flex items-center justify-center gap-2"
+              >
+                <Calendar size={20} />
+                {isSubmitting ? 'Creating...' : 'Schedule Playdate'}
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-lg font-display font-semibold mb-3 flex items-center gap-2">
+                  <Users size={20} className="text-primary" />
+                  Participants ({participants.length})
+                </h3>
+                <div className="space-y-2 max-h-[40vh] overflow-y-auto">
+                  {participants.map((participant) => (
+                    <div key={participant.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
+                      <div className="w-2 h-2 rounded-full bg-primary"></div>
+                      <span className="font-body">{participant.username}</span>
+                      <span className="text-sm text-gray-500 ml-auto">{participant.status}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-3">
+                {userParticipation === 'joined' ? (
+                  <button
+                    onClick={() => handleParticipation('cancelled')}
+                    disabled={isUpdating}
+                    className="btn-secondary flex-1 flex items-center justify-center gap-2"
+                  >
+                    <UserMinus size={20} />
+                    {isUpdating ? 'Updating...' : 'Leave Playdate'}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleParticipation('joined')}
+                    disabled={isUpdating}
+                    className="btn-primary flex-1 flex items-center justify-center gap-2"
+                  >
+                    <UserPlus size={20} />
+                    {isUpdating ? 'Updating...' : 'Join Playdate'}
+                  </button>
+                )}
               </div>
             </div>
-
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
-                Description
-              </label>
-              <textarea
-                id="description"
-                required
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                rows={3}
-                className="input-playful"
-                placeholder="Add any details about the playdate..."
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isSubmitting}
-              className="w-full btn-primary flex items-center justify-center gap-2"
-            >
-              <Calendar size={20} />
-              {isSubmitting ? 'Creating...' : 'Schedule Playdate'}
-            </button>
-          </form>
-        ) : (
-          <div className="space-y-6">
-            <div>
-              <h3 className="text-lg font-display font-semibold mb-3 flex items-center gap-2">
-                <Users size={20} className="text-primary" />
-                Participants ({participants.length})
-              </h3>
-              <div className="space-y-2">
-                {participants.map((participant) => (
-                  <div key={participant.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-lg">
-                    <div className="w-2 h-2 rounded-full bg-primary"></div>
-                    <span className="font-body">{participant.username}</span>
-                    <span className="text-sm text-gray-500 ml-auto">{participant.status}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex gap-3">
-              {userParticipation === 'joined' ? (
-                <button
-                  onClick={() => handleParticipation('cancelled')}
-                  disabled={isUpdating}
-                  className="btn-secondary flex-1 flex items-center justify-center gap-2"
-                >
-                  <UserMinus size={20} />
-                  {isUpdating ? 'Updating...' : 'Leave Playdate'}
-                </button>
-              ) : (
-                <button
-                  onClick={() => handleParticipation('joined')}
-                  disabled={isUpdating}
-                  className="btn-primary flex-1 flex items-center justify-center gap-2"
-                >
-                  <UserPlus size={20} />
-                  {isUpdating ? 'Updating...' : 'Join Playdate'}
-                </button>
-              )}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

@@ -9,25 +9,25 @@ interface LogoProps {
 export function Logo({ className = '', showText = true, size = 'md' }: LogoProps) {
   const sizes = {
     sm: {
-      container: 'w-12 h-12',
-      text: 'text-2xl',
+      container: 'w-6 sm:w-8 h-6 sm:h-8',
+      text: 'text-base sm:text-lg',
     },
     md: {
-      container: 'w-24 h-24',
-      text: 'text-3xl',
+      container: 'w-12 sm:w-16 h-12 sm:h-16',
+      text: 'text-lg sm:text-xl',
     },
     lg: {
-      container: 'w-32 h-32',
-      text: 'text-5xl',
+      container: 'w-16 sm:w-24 h-16 sm:h-24',
+      text: 'text-xl sm:text-3xl',
     },
     xl: {
-      container: 'w-48 h-48',
-      text: 'text-6xl',
+      container: 'w-20 sm:w-32 h-20 sm:h-32',
+      text: 'text-2xl sm:text-4xl',
     },
   };
 
   return (
-    <div className={`flex items-center gap-0 ${className}`}>
+    <div className={`flex items-center gap-1 ${className}`}>
       <div className={`relative ${sizes[size].container}`}>
         <svg viewBox="0 0 100 120" className="w-full h-full">
           {/* Green base */}
@@ -96,7 +96,7 @@ export function Logo({ className = '', showText = true, size = 'md' }: LogoProps
         </svg>
       </div>
       {showText && (
-        <div className="flex items-center -ml-2">
+        <div className="flex items-center">
           <span className={`font-display font-bold ${sizes[size].text}`}>
             <span className="text-[#EC4899]">Hop</span>
             <span className="text-[#3B82F6]">Spot</span>
