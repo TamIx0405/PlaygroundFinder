@@ -5,6 +5,7 @@ import toast from 'react-hot-toast';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
+// Fix for default marker icons in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -38,7 +39,7 @@ function MapBounds({ playgrounds }: { playgrounds: Playground[] }) {
 
 export function PlaygroundMap() {
   const [playgrounds, setPlaygrounds] = useState<Playground[]>([]);
-  const [center, setCenter] = useState<[number, number]>([51.1657, 10.4515]);
+  const [center, setCenter] = useState<[number, number]>([51.1657, 10.4515]); // Default to center of Germany
 
   useEffect(() => {
     fetchPlaygrounds();
@@ -49,7 +50,7 @@ export function PlaygroundMap() {
           setCenter([position.coords.latitude, position.coords.longitude]);
         },
         () => {
-          toast.error('location not found');
+          toast.error('Location could not be determined');
         }
       );
     }
@@ -73,12 +74,12 @@ export function PlaygroundMap() {
 
   return (
     <div className="card-playful p-4">
-      <div className="w-full h-[200px] sm:h-[250px] rounded-sm overflow-hidden">
+      <div className="w-full h-[300px] sm:h-[400px] rounded-lg overflow-hidden">
         <MapContainer
           center={center}
           zoom={6}
           style={{ height: '100%', width: '100%' }}
-          zoomControl={false} 
+          zoomControl={false}
         >
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'

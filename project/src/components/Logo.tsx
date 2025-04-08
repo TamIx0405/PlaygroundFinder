@@ -13,15 +13,15 @@ export function Logo({ className = '', showText = true, size = 'md' }: LogoProps
       text: 'text-2xl',
     },
     md: {
-      container: 'w-20 h-20',
+      container: 'w-24 h-24',
       text: 'text-3xl',
     },
     lg: {
-      container: 'w-28 h-28',
+      container: 'w-32 h-32',
       text: 'text-5xl',
     },
     xl: {
-      container: 'w-40 h-40',
+      container: 'w-48 h-48',
       text: 'text-6xl',
     },
   };

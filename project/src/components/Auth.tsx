@@ -119,7 +119,7 @@ export function Auth() {
 
       {/* Auth Form Section */}
       <div className="flex-1 flex flex-col items-center justify-center p-6 lg:p-8">
-        {/* About Us Section - Mobile */}
+        {/* About me Section - Mobile */}
         <div className="lg:hidden w-full max-w-md mb-8">
           <Logo size="xl" className="mx-auto mb-6" />
           <AboutUsContent />
