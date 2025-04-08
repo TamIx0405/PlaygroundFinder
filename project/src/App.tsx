@@ -8,7 +8,7 @@ import { Logo } from './components/Logo';
 import { UserProfile } from './components/UserProfile';
 import { UserAvatar } from './components/UserAvatar';
 import { supabase } from './lib/supabase';
-import { LogOut, Rabbit } from 'lucide-react';
+import { PlusCircle, LogOut, Rabbit } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface Playground {
@@ -105,8 +105,9 @@ function App() {
                 }}
                 className="btn-primary flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4"
               >
-               
-                <span>{showAddForm ? 'Close' : 'Add Playground'}</span>
+                <PlusCircle size={20} />
+                <span className="hidden sm:inline">{showAddForm ? 'Close' : 'Add Playground'}</span>
+                <span className="sm:hidden">{showAddForm ? 'Close' : 'Add'}</span>
               </button>
               <button
                 onClick={() => {
@@ -116,21 +117,21 @@ function App() {
                 className="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4"
               >
                 <UserAvatar size="sm" />
-                <span>Profile</span>
+                <span className="hidden sm:inline">Profile</span>
               </button>
               <button
                 onClick={handleLogout}
                 className="btn-secondary flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4"
               >
                 <LogOut size={20} />
-                <span>Logout</span>
+                <span className="hidden sm:inline">Logout</span>
               </button>
             </nav>
           </div>
         </div>
       </header>
 
-      <main className="relative z-10 max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 overflow-x-hidden">
+      <main className="relative z-10 max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
         {showProfile ? (
           <UserProfile />
         ) : (
@@ -180,4 +181,4 @@ function App() {
   );
 }
 
-export default App;
+export default App
