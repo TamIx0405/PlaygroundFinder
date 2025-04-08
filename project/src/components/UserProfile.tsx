@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { User, Trash2 } from 'lucide-react';
+import { User, Trash2, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const ANIMAL_AVATARS = {
@@ -140,10 +140,19 @@ export function UserProfile() {
 
   return (
     <div className="max-w-lg mx-auto p-6">
-      <h2 className="text-2xl font-display font-bold mb-6 flex items-center gap-2">
-        <User className="text-primary" />
-        Profile Settings
-      </h2>
+      <div className="flex items-center justify-between mb-6">
+        <button
+          onClick={() => window.location.href = '/'}
+          className="flex items-center gap-2 text-gray-600 hover:text-primary transition-colors"
+        >
+          <ArrowLeft size={24} />
+          <span className="font-medium">Back to Map</span>
+        </button>
+        <h2 className="text-2xl font-display font-bold flex items-center gap-2">
+          <User className="text-primary" />
+          Profile Settings
+        </h2>
+      </div>
 
       <div className="space-y-6">
         <div>

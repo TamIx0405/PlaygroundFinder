@@ -8,7 +8,7 @@ import { Logo } from './components/Logo';
 import { UserProfile } from './components/UserProfile';
 import { UserAvatar } from './components/UserAvatar';
 import { supabase } from './lib/supabase';
-import { PlusCircle, LogOut, Rabbit } from 'lucide-react';
+import { LogOut, Rabbit } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface Playground {
@@ -105,7 +105,7 @@ function App() {
                 }}
                 className="btn-primary flex-1 sm:flex-none flex items-center justify-center gap-2 h-10 px-4"
               >
-                <PlusCircle size={20} />
+               
                 <span className="hidden sm:inline">{showAddForm ? 'Close' : 'Add Playground'}</span>
                 <span className="sm:hidden">{showAddForm ? 'Close' : 'Add'}</span>
               </button>
