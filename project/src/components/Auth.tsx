@@ -128,11 +128,11 @@ export function Auth() {
         <div className="w-full max-w-md space-y-8 card-playful p-6 lg:p-8">
           <div className="text-center">
             <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-800 mb-2">
-              {mode === 'login' ? 'Welcome Back!' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
+              {mode === 'login' ? 'Hey! Want to play?' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
             </h2>
             <p className="text-gray-600 font-body">
               {mode === 'login' 
-                ? "Discover playgrounds and connect with families"
+                ? "find and add new playgrounds and connect with families"
                 : mode === 'signup'
                 ? 'Join our community and start your adventure'
                 : 'Enter your email to receive reset instructions'}
