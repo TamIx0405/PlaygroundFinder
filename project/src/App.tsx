@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
 import { PlaygroundCard } from './components/PlaygroundCard';
 import { AddPlayground } from './components/AddPlayground';
@@ -7,7 +7,7 @@ import { Auth } from './components/Auth';
 import { Logo } from './components/Logo';
 import { UserCalendar } from './components/UserCalendar';
 import { supabase } from './lib/supabase';
-import { PlusCircle, LogOut, Calendar, ChevronUp, ChevronDown } from 'lucide-react';
+import { LogOut } from 'lucide-react';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 interface Hopspot {
@@ -27,7 +27,6 @@ function App() {
   const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<SupabaseUser | null>(null);
-  const [showMobileCalendar, setShowMobileCalendar] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -98,7 +97,7 @@ function App() {
                 onClick={() => setShowAddForm(!showAddForm)}
                 className="btn-primary flex items-center justify-center gap-1 sm:gap-2 h-8 sm:h-10 px-2 sm:px-4 text-sm sm:text-base"
               >
-                <PlusCircle size={18} />
+                
                 <span className="hidden sm:inline">{showAddForm ? 'Close' : 'Add Hopspot'}</span>
                 <span className="sm:hidden">{showAddForm ? 'Close' : 'Add'}</span>
               </button>
@@ -111,13 +110,7 @@ function App() {
             </div>
 
             {/* Right section */}
-            <div className="flex justify-end gap-1 sm:gap-2">
-              <button
-                onClick={() => setShowMobileCalendar(!showMobileCalendar)}
-                className="lg:hidden btn-secondary flex items-center justify-center h-8 sm:h-10 w-8 sm:w-10 p-0"
-              >
-                <Calendar size={18} />
-              </button>
+            <div className="flex justify-end">
               <button
                 onClick={handleLogout}
                 className="btn-secondary flex items-center justify-center gap-1 sm:gap-2 h-8 sm:h-10 px-2 sm:px-4 text-sm sm:text-base"
@@ -172,23 +165,15 @@ function App() {
               </div>
             )}
           </div>
+          
+          {/* Calendar - Desktop */}
           <div className="hidden lg:block">
             <UserCalendar />
           </div>
           
-          {/* Mobile Calendar */}
-          <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white shadow-lg rounded-t-3xl transform transition-transform duration-300 ease-in-out z-20"
-               style={{ transform: showMobileCalendar ? 'translateY(0)' : 'translateY(calc(100% - 40px))' }}>
-            <button
-              onClick={() => setShowMobileCalendar(!showMobileCalendar)}
-              className="absolute -top-2 left-1/2 transform -translate-x-1/2 -translate-y-full bg-white rounded-t-xl p-2 shadow-md flex items-center gap-2 text-gray-600"
-            >
-              <Calendar size={20} />
-              {showMobileCalendar ? <ChevronDown size={20} /> : <ChevronUp size={20} />}
-            </button>
-            <div className="p-4 max-h-[80vh] overflow-y-auto">
-              <UserCalendar />
-            </div>
+          {/* Calendar - Mobile */}
+          <div className="lg:hidden mt-8">
+            <UserCalendar />
           </div>
         </div>
       </main>

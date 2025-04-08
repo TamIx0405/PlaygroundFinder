@@ -12,7 +12,7 @@ async function searchLocation(query: string, options: { limit?: number; countryc
   const params = new URLSearchParams({
     q: query,
     format: 'json',
-    countrycodes: options.countrycodes || 'de',
+    countrycodes: options.countrycodes || 'de', // Set default country to Germany
     addressdetails: (options.addressdetails || 1).toString(),
     limit: (options.limit || 10).toString()
   });
@@ -35,7 +35,7 @@ async function searchLocation(query: string, options: { limit?: number; countryc
     }
 
     const results = await response.json();
-
+    
     if (!Array.isArray(results)) {
       throw new Error('Invalid response format from geocoding service');
     }
@@ -45,27 +45,6 @@ async function searchLocation(query: string, options: { limit?: number; countryc
     console.error('Search location error:', error);
     throw new Error(`Geocoding service error: ${error.message}`);
   }
-}
-
-function validateAddress(address: string): { streetAddress: string; city: string } {
-  const addressParts = address.split(',').map(part => part.trim());
-
-  if (addressParts.length < 2) {
-    throw new Error('Please enter at least street and city');
-  }
-
-  const streetAddress = addressParts[0];
-  const city = addressParts[1];
-
-  if (streetAddress.length < 2) {
-    throw new Error('Invalid street format. Please provide at least the street name');
-  }
-
-  if (city.length < 2) {
-    throw new Error('Please provide a valid city name');
-  }
-
-  return { streetAddress, city };
 }
 
 serve(async (req) => {
@@ -79,7 +58,7 @@ serve(async (req) => {
     }
 
     const { zipCode, address } = await req.json();
-
+    
     if (!zipCode || typeof zipCode !== 'string') {
       throw new Error('ZIP code is required');
     }
@@ -88,49 +67,55 @@ serve(async (req) => {
       throw new Error('Address is required');
     }
 
+    // Validate German postal code format (5 digits)
     if (!/^\d{5}$/.test(zipCode)) {
       throw new Error('Invalid ZIP code. Please enter a 5-digit ZIP code.');
     }
 
     const cleanAddress = address.trim();
     if (cleanAddress.length < 3) {
-      throw new Error('Address is too short. Please enter a valid street address.');
+      throw new Error('Address is too short');
     }
-
-    const { streetAddress, city } = validateAddress(cleanAddress);
 
     let results: any[] = [];
     let searchAttempts = 0;
     const maxAttempts = 4;
 
+    // Strategy 1: Full address with ZIP code
     console.log('Strategy 1: Trying full address with ZIP code');
-    results = await searchLocation(`${cleanAddress} ${zipCode}`, {
+    results = await searchLocation(`${cleanAddress} ${zipCode}`, { 
       limit: 5,
       countrycodes: 'de'
     });
     searchAttempts++;
 
+    // Strategy 2: Address without ZIP code
     if (!results.length && searchAttempts < maxAttempts) {
-      console.log('Strategy 2: Trying street address with city and ZIP code');
-      results = await searchLocation(`${streetAddress}, ${city} ${zipCode}`, {
+      console.log('Strategy 2: Trying address without ZIP code');
+      results = await searchLocation(cleanAddress, {
         limit: 5,
         countrycodes: 'de'
       });
       searchAttempts++;
     }
 
+    // Strategy 3: ZIP code and city
     if (!results.length && searchAttempts < maxAttempts) {
-      console.log('Strategy 3: Trying street address with ZIP code');
-      results = await searchLocation(`${streetAddress} ${zipCode}`, {
-        limit: 5,
-        countrycodes: 'de'
-      });
-      searchAttempts++;
+      const city = cleanAddress.split(',')[1]?.trim();
+      if (city) {
+        console.log('Strategy 3: Trying ZIP code and city');
+        results = await searchLocation(`${city} ${zipCode}`, {
+          limit: 5,
+          countrycodes: 'de'
+        });
+        searchAttempts++;
+      }
     }
 
+    // Strategy 4: ZIP code only
     if (!results.length && searchAttempts < maxAttempts) {
-      console.log('Strategy 4: Trying city and ZIP code');
-      results = await searchLocation(`${city} ${zipCode}`, {
+      console.log('Strategy 4: Trying ZIP code only');
+      results = await searchLocation(zipCode, {
         limit: 5,
         countrycodes: 'de'
       });
@@ -149,11 +134,11 @@ serve(async (req) => {
       const longitude = Number(location.lon);
 
       if (isNaN(latitude) || isNaN(longitude)) {
-        throw new Error('Received invalid coordinates from the geocoding service');
+        throw new Error('Invalid coordinates received from geocoding service');
       }
 
       if (latitude < -90 || latitude > 90 || longitude < -180 || longitude > 180) {
-        throw new Error('Invalid coordinates: out of valid range');
+        throw new Error('Invalid coordinates: outside valid range');
       }
 
       return new Response(
@@ -191,11 +176,11 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({
+      JSON.stringify({ 
         error: message,
         status
       }),
-      {
+      { 
         status,
         headers: corsHeaders
       }

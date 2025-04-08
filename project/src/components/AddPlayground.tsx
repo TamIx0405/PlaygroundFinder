@@ -6,7 +6,7 @@ import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-
+// Fix for default marker icons in Leaflet
 delete (L.Icon.Default.prototype as any)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
@@ -65,10 +65,6 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
   }, []);
 
   const validateAddressFields = () => {
-    if (!streetNumber.trim()) {
-      toast.error('Please enter a street number');
-      return false;
-    }
     if (!streetName.trim()) {
       toast.error('Please enter a street name');
       return false;
@@ -78,7 +74,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
       return false;
     }
     if (!/^\d{5}$/.test(zipCode)) {
-      toast.error('Please enter a valid zip code');
+      toast.error('Please enter a valid zip code (5 digits)');
       return false;
     }
     return true;
@@ -93,7 +89,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
 
     setIsGeocoding(true);
     try {
-      const fullAddress = `${streetName.trim()} ${streetNumber.trim()}, ${city.trim()}`; 
+      const fullAddress = `${streetName.trim()}${streetNumber.trim() ? ' ' + streetNumber.trim() : ''}, ${city.trim()}`; 
 
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/geocode`, {
         method: 'POST',
@@ -152,7 +148,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
   };
 
   useEffect(() => {
-    if (!streetNumber || !streetName || !city || !zipCode || zipCode.length !== 5) return;
+    if (!streetName || !city || !zipCode || zipCode.length !== 5) return;
 
     const timer = setTimeout(() => {
       setGeocodingAttempts(0);
@@ -160,7 +156,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
     }, 1000);
 
     return () => clearTimeout(timer);
-  }, [streetNumber, streetName, city, zipCode]);
+  }, [streetName, streetNumber, city, zipCode]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -218,7 +214,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
         throw new Error('You must be logged in to add a playground');
       }
 
-      const fullAddress = `${streetName} ${streetNumber}, ${city}, ${zipCode}`;
+      const fullAddress = `${streetName}${streetNumber ? ' ' + streetNumber : ''}, ${city}, ${zipCode}`;
 
       const { data: playground, error: playgroundError } = await supabase
         .from('playgrounds')
@@ -294,18 +290,6 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-gray-700">Street number</label>
-          <input
-            type="text"
-            value={streetNumber}
-            onChange={(e) => setStreetNumber(e.target.value.replace(/\D/g, ''))}
-            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
-            placeholder="1"
-            required
-          />
-        </div>
-
-        <div>
           <label className="block text-sm font-medium text-gray-700">Street name</label>
           <input
             type="text"
@@ -314,6 +298,17 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
             placeholder="Main Street"
             required
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700">Street number (optional)</label>
+          <input
+            type="text"
+            value={streetNumber}
+            onChange={(e) => setStreetNumber(e.target.value.replace(/\D/g, ''))}
+            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+            placeholder="1"
           />
         </div>
       </div>
@@ -351,7 +346,7 @@ export function AddPlayground({ onSuccess }: { onSuccess: () => void }) {
 
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-2">
-          Location will be automatically determined from the address
+          Location is automatically determined from the address
           {isGeocoding && ' (Searching...)'}
         </label>
         <div className="h-[300px] rounded-lg overflow-hidden">

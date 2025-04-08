@@ -44,13 +44,15 @@ export function PlaygroundMap() {
   useEffect(() => {
     fetchPlaygrounds();
 
+    // Get user location silently without showing error
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           setCenter([position.coords.latitude, position.coords.longitude]);
         },
         () => {
-          toast.error('Location could not be determined');
+          // Silently fail and keep default center
+          console.log('Using default map center');
         }
       );
     }
