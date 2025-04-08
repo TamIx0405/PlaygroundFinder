@@ -9,13 +9,26 @@ export function Auth() {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<'login' | 'signup' | 'reset'>('login');
+  const [resetSent, setResetSent] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
+      if (mode === 'reset') {
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
+        
+        if (error) throw error;
+        
+        setResetSent(true);
+        toast.success('Password reset instructions have been sent to your email');
+        return;
+      }
+
       if (mode === 'signup') {
         if (!/^[a-zA-Z0-9]+$/.test(username)) {
           throw new Error('Username can only contain letters and numbers');
@@ -27,28 +40,22 @@ export function Auth() {
           .eq('username', username)
           .maybeSingle();
 
-        if (checkError) {
-          throw checkError;
-        }
-
-        if (existingUser) {
-          throw new Error('Username already taken');
-        }
+        if (checkError) throw checkError;
+        if (existingUser) throw new Error('Username already taken');
 
         const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: {
-              username
-            }
+            data: { username },
+            emailRedirectTo: `${window.location.origin}/auth/callback`
           }
         });
 
         if (signUpError) throw signUpError;
         if (!signUpData.user) throw new Error('Error creating user');
 
-        toast.success('Account successfully created! Please check your email for confirmation.');
+        toast.success('Please check your email to confirm your account');
         setMode('login');
       } else {
         const { error } = await supabase.auth.signInWithPassword({
@@ -71,7 +78,7 @@ export function Auth() {
       <div className="flex items-start gap-4 bg-white/20 backdrop-blur-sm p-4 rounded-xl">
         <Heart className="mt-1 text-secondary-light shrink-0" size={24} />
         <div>
-          <h3 className="text-xl font-display font-semibold mb-1 text-black">Our mission</h3>
+          <h3 className="text-xl font-display font-semibold mb-1 text-black">Our Mission</h3>
           <p className="text-black/90 font-body text-sm">
             We create a platform where parents can find the best playing spots in their community and build new friendships.
           </p>
@@ -80,7 +87,7 @@ export function Auth() {
       <div className="flex items-start gap-4 bg-white/20 backdrop-blur-sm p-4 rounded-xl">
         <Users className="mt-1 text-accent-yellow shrink-0" size={24} />
         <div>
-          <h3 className="text-xl font-display font-semibold mb-1 text-black">Community driven</h3>
+          <h3 className="text-xl font-display font-semibold mb-1 text-black">Community Driven</h3>
           <p className="text-black/90 font-body text-sm">
             Share experiences and organize playdates with other families and friends. We grow thanks to your contributions and your opinion matters!
           </p>
@@ -89,7 +96,7 @@ export function Auth() {
       <div className="flex items-start gap-4 bg-white/20 backdrop-blur-sm p-4 rounded-xl">
         <MapPin className="mt-1 text-accent-green shrink-0" size={24} />
         <div>
-          <h3 className="text-xl font-display font-semibold mb-1 text-black">Find perfect spots</h3>
+          <h3 className="text-xl font-display font-semibold mb-1 text-black">Find Perfect Spots</h3>
           <p className="text-black/90 font-body text-sm">
             Discover age-appropriate playgrounds with detailed information and parent reviews.
           </p>
@@ -118,22 +125,37 @@ export function Auth() {
           <AboutUsContent />
         </div>
 
-        <div className="w-full max-w-md space-y-8 card-playful p-6 lg:p-8 relative">
+        <div className="w-full max-w-md space-y-8 card-playful p-6 lg:p-8">
+          <div className="text-center">
+            <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-800 mb-2">
+              {mode === 'login' ? 'Welcome Back!' : mode === 'signup' ? 'Create Account' : 'Reset Password'}
+            </h2>
+            <p className="text-gray-600 font-body">
+              {mode === 'login' 
+                ? "Discover playgrounds and connect with families"
+                : mode === 'signup'
+                ? 'Join our community and start your adventure'
+                : 'Enter your email to receive reset instructions'}
+            </p>
+          </div>
 
-          
-          <div className="relative z-10">
+          {mode === 'reset' && resetSent ? (
             <div className="text-center">
-              <h2 className="text-3xl lg:text-4xl font-display font-bold text-gray-800 mb-2">
-                {mode === 'login' ? 'Hey! want to play?' : 'Create Account'}
-              </h2>
-              <p className="text-gray-600 font-body">
-                {mode === 'login' 
-                  ? "find and add new playgrounds and connect with families"
-                  : 'Join our community and start your adventure'}
+              <p className="text-green-600 font-body mb-4">
+                Check your email for password reset instructions
               </p>
+              <button
+                onClick={() => {
+                  setMode('login');
+                  setResetSent(false);
+                }}
+                className="text-primary hover:underline"
+              >
+                Return to login
+              </button>
             </div>
-            
-            <form className="mt-6 space-y-6" onSubmit={handleSubmit}>
+          ) : (
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div className="space-y-4">
                 <div>
                   <label htmlFor="email" className="sr-only">Email address</label>
@@ -153,6 +175,7 @@ export function Auth() {
                     />
                   </div>
                 </div>
+
                 {mode === 'signup' && (
                   <div>
                     <label htmlFor="username" className="sr-only">Username</label>
@@ -177,25 +200,28 @@ export function Auth() {
                     </div>
                   </div>
                 )}
-                <div>
-                  <label htmlFor="password" className="sr-only">Password</label>
-                  <div className="relative">
-                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                      <Lock className="h-5 w-5 text-primary" />
+
+                {mode !== 'reset' && (
+                  <div>
+                    <label htmlFor="password" className="sr-only">Password</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                        <Lock className="h-5 w-5 text-primary" />
+                      </div>
+                      <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        required
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="input-playful pl-12"
+                        placeholder="Password"
+                        minLength={6}
+                      />
                     </div>
-                    <input
-                      id="password"
-                      name="password"
-                      type="password"
-                      required
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="input-playful pl-12"
-                      placeholder="Password"
-                      minLength={6}
-                    />
                   </div>
-                </div>
+                )}
               </div>
 
               <div className="space-y-4">
@@ -204,21 +230,44 @@ export function Auth() {
                   disabled={isLoading}
                   className={`w-full btn-primary ${isLoading ? 'opacity-70 cursor-not-allowed' : ''}`}
                 >
-                  {isLoading ? 'Processing...' : mode === 'login' ? 'Sign In' : 'Create Account'}
+                  {isLoading 
+                    ? 'Processing...' 
+                    : mode === 'login' 
+                    ? 'Sign In' 
+                    : mode === 'signup'
+                    ? 'Create Account'
+                    : 'Send Reset Instructions'}
                 </button>
 
-                <button
-                  type="button"
-                  onClick={() => setMode(mode === 'login' ? 'signup' : 'login')}
-                  className="w-full btn-secondary"
-                >
-                  {mode === 'login'
-                    ? "Don't have an account? Sign up"
-                    : 'Already have an account? Sign in'}
-                </button>
+                <div className="space-y-2">
+                  {mode === 'login' && (
+                    <button
+                      type="button"
+                      onClick={() => setMode('reset')}
+                      className="w-full text-primary hover:underline text-sm"
+                    >
+                      Forgot your password?
+                    </button>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode(mode === 'login' ? 'signup' : 'login');
+                      setResetSent(false);
+                    }}
+                    className="w-full btn-secondary"
+                  >
+                    {mode === 'login'
+                      ? "Don't have an account? Sign up"
+                      : mode === 'signup'
+                      ? 'Already have an account? Sign in'
+                      : 'Back to login'}
+                  </button>
+                </div>
               </div>
             </form>
-          </div>
+          )}
         </div>
       </div>
     </div>

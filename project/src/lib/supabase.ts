@@ -27,19 +27,18 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storageKey: 'playground-finder-auth',
     storage: window.localStorage,
     autoRefreshToken: true,
-    detectSessionInUrl: true
+    detectSessionInUrl: true,
+    onAuthStateChange: (event) => {
+      if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+        localStorage.removeItem('playground-finder-auth');
+        window.location.reload();
+      }
+    }
   }
 });
 
-// Add helper to check if session is valid
+// Helper to check if session is valid
 export const isSessionValid = async () => {
-  const { data: { session }, error } = await supabase.auth.getSession();
-  return !error && session !== null;
+  const { data: { session } } = await supabase.auth.getSession();
+  return session !== null;
 };
-
-supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'TOKEN_REFRESHED' && !session) {
-    // If token refresh fails, clear the session
-    localStorage.removeItem('playground-finder-auth');
-  }
-});

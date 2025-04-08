@@ -13,27 +13,6 @@
 
 @layer components {
   /* Interactive elements */
-  .animated-sun {
-    @apply absolute right-10 top-10 text-yellow-400;
-    animation: spin-slow 20s linear infinite;
-    filter: drop-shadow(0 0 10px rgba(250, 204, 21, 0.4));
-  }
-
-  .animated-cloud {
-    @apply absolute text-white transform-gpu transition-transform duration-1000;
-    animation: float 20s infinite linear;
-  }
-
-  .animated-bird {
-    @apply absolute text-primary-dark transform-gpu transition-transform duration-500;
-    animation: fly 15s infinite linear;
-  }
-
-  .animated-duck {
-    @apply absolute text-primary transform-gpu transition-transform duration-700;
-    animation: waddle 12s infinite linear;
-  }
-
   .animated-rabbit {
     @apply absolute text-secondary-dark transform-gpu transition-transform duration-500;
     animation: hop 8s infinite ease-in-out;
@@ -70,27 +49,6 @@
   }
 
   /* Animations */
-  @keyframes float {
-    0%, 100% { transform: translateY(0) translateX(0); }
-    25% { transform: translateY(-10px) translateX(5px); }
-    50% { transform: translateY(0) translateX(10px); }
-    75% { transform: translateY(10px) translateX(5px); }
-  }
-
-  @keyframes fly {
-    0% { transform: translateX(-100%) translateY(0); }
-    50% { transform: translateX(100vw) translateY(-20px); }
-    50.001% { transform: translateX(-100%) translateY(-20px); }
-    100% { transform: translateX(100vw) translateY(0); }
-  }
-
-  @keyframes waddle {
-    0% { transform: translateX(-50px) rotate(0deg); }
-    25% { transform: translateX(50px) rotate(5deg); }
-    75% { transform: translateX(-50px) rotate(-5deg); }
-    100% { transform: translateX(50px) rotate(0deg); }
-  }
-
   @keyframes hop {
     0%, 100% { transform: translateY(0) scale(1); }
     50% { transform: translateY(-20px) scale(0.95); }
