@@ -1,4 +1,5 @@
 import React from 'react';
+import logoImage from '../assets/HopspotLogo.png'; 
 
 interface LogoProps {
   className?: string;
@@ -29,71 +30,11 @@ export function Logo({ className = '', showText = true, size = 'md' }: LogoProps
   return (
     <div className={`flex items-center gap-1 ${className}`}>
       <div className={`relative ${sizes[size].container}`}>
-        <svg viewBox="0 0 100 120" className="w-full h-full">
-          {/* Green base */}
-          <ellipse cx="50" cy="105" rx="30" ry="10" fill="#4ADE80" />
-          
-          {/* Pin shape */}
-          <path
-            d="M20 50 
-                C20 25, 80 25, 80 50 
-                L50 95 Z"
-            fill="#60A5FA"
-          />
-          
-          {/* Bunny */}
-          <g transform="translate(28, 35) scale(0.9)">
-            {/* Body */}
-            <path
-              d="M25 40 
-                 C15 40, 15 20, 25 15
-                 C35 10, 45 10, 45 15
-                 C55 20, 55 40, 45 40
-                 Z"
-              fill="#FFF5E7"
-              stroke="#2F2F2F"
-              strokeWidth="2"
-            />
-            
-            {/* Left ear */}
-            <path
-              d="M25 15
-                 C20 0, 30 0, 35 15"
-              fill="#FFF5E7"
-              stroke="#2F2F2F"
-              strokeWidth="2"
-            />
-            
-            {/* Right ear */}
-            <path
-              d="M35 15
-                 C40 0, 50 0, 45 15"
-              fill="#FFF5E7"
-              stroke="#2F2F2F"
-              strokeWidth="2"
-            />
-            
-            {/* Inner ear detail */}
-            <path
-              d="M27 12
-                 C25 5, 30 5, 32 12"
-              fill="#FFA07A"
-            />
-            
-            {/* Eye */}
-            <circle cx="30" cy="25" r="2" fill="#2F2F2F" />
-            
-            {/* Smile */}
-            <path
-              d="M32 30
-                 Q35 33 38 30"
-              fill="none"
-              stroke="#2F2F2F"
-              strokeWidth="2"
-              strokeLinecap="round"
-            />
-          </g>
-        </svg>
+        <img 
+          src={logoImage} 
+          alt="HopSpot Logo" 
+          className="w-full h-full object-contain"
+        />
       </div>
       {showText && (
         <div className="flex items-center">
